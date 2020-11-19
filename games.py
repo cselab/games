@@ -29,7 +29,7 @@ class bargain:
 
         J0 = np.array(J0)
         for node in G:
-            G.nodes[node]['J'] = np.random.uniform(low=0, high=J0 + 1).astype('float64')
+            G.nodes[node]['J'] = np.random.uniform(low=0, high=J0).astype('float64')
             G.nodes[node]['P'] = np.exp(self.beta * G.nodes[node]['J'])
             G.nodes[node]['P'] /= np.sum(G.nodes[node]['P'])
 
