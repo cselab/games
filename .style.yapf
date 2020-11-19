@@ -42,7 +42,7 @@ arithmetic_precedence_indication=True
 
 # Number of blank lines surrounding top-level function and class
 # definitions.
-blank_lines_around_top_level_definition=4
+blank_lines_around_top_level_definition=2
 
 # Insert a blank line before a class-level docstring.
 blank_line_before_class_docstring=False
@@ -391,4 +391,3 @@ split_penalty_logical_operator=300
 
 # Use the Tab character for indentation.
 use_tabs=False
-

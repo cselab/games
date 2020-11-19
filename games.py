@@ -6,6 +6,10 @@ import numpy as np
 import sys
 
 
+def random_choice(p, r):
+    return np.argmax(np.cumsum(p) > r)
+
+
 class bargain:
 
     def __init__(self, G, beta=1., gamma=0.1, seed=None, J0=[ 4, 4, 4 ], payoff=None):
@@ -33,7 +37,6 @@ class bargain:
             self.payoff[2] = [ 0.7, 0.0, 0.0 ]
             self.gamma_payoff = self.gamma * self.payoff
 
-
         self.N_per_epoch = np.ceil(self.N_nodes / 2).astype(int)
 
         self.nodes = list(self.G.nodes)
@@ -42,22 +45,22 @@ class bargain:
         self.fig = None
         self.ax = None
 
-
-    def play(self, N_epochs=10 ):
+    def play(self, N_epochs=10):
 
         for e in range(N_epochs):
             R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
+            Q = np.random.uniform(low=0.0, high=1.0, size=(self.N_nodes, 2))
 
-            for i in R:
-                node1 = self.nodes[i]
+            for i in range(self.N_per_epoch):
+                node1 = self.nodes[R[i]]
                 s = np.random.randint(0, self.G.degree(node1))
-                node2 = self.neighbors[i][s]
+                node2 = self.neighbors[R[i]][s]
 
                 node1_data = self.G.nodes[node1]
                 node2_data = self.G.nodes[node2]
 
-                action1 = np.random.choice(3, size=1, p=node1_data['P'])[0]
-                action2 = np.random.choice(3, size=1, p=node2_data['P'])[0]
+                action1 = random_choice(node1_data['P'], Q[i, 0])
+                action2 = random_choice(node2_data['P'], Q[i, 1])
 
                 J1_old = node1_data['J'][action1]
                 J2_old = node2_data['J'][action2]
@@ -72,14 +75,13 @@ class bargain:
                 node2_data['P'] = np.exp(self.beta * node2_data['J'])
                 node2_data['P'] /= np.sum(node2_data['P'])
 
-    def plot_init(self, fig_size=(10, 10) ):
+    def plot_init(self, fig_size=(10, 10)):
         self.fig, self.ax = plt.subplots(figsize=fig_size)
         if self.positions == None:
             pos = nx.spring_layout(self.G, iterations=100)
             self.positions = nx.kamada_kawai_layout(self.G, pos=pos)
 
-
-    def plot(self,  with_labels=False, node_size=500, pause=0.05):
+    def plot(self, with_labels=False, node_size=500, pause=0.05):
         if self.positions == None:
             # sys.exit('Error!')
             print('Run plot_init() before plot()')
@@ -88,7 +90,12 @@ class bargain:
         node_color = [list(self.G.nodes[node]['J']) for node in self.G]
         node_color = np.vstack(node_color)
         node_color = node_color / np.amax(node_color)
-        nx.draw(self.G, ax=self.ax, pos=self.positions, with_labels=with_labels, node_size=node_size, node_color=node_color)
+        nx.draw(self.G,
+                ax=self.ax,
+                pos=self.positions,
+                with_labels=with_labels,
+                node_size=node_size,
+                node_color=node_color)
 
         plt.pause(0.5)
         plt.show(block=False)
