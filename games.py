@@ -168,6 +168,7 @@ class bargain:
             ax.plot(np.arange(len(data)), data, label=key)
         ax.legend()
         plt.savefig(fig_path)
+        plt.close()
 
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/statistics_J"
@@ -176,6 +177,7 @@ class bargain:
             ax.plot(np.arange(len(data)), data, label=key)
         ax.legend()
         plt.savefig(fig_path)
+        plt.close()
 
         # Plotting attractors in the J and P space:
         for keys in [
@@ -196,3 +198,4 @@ class bargain:
             ax.set_xlabel(key1)
             ax.set_ylabel(key2)
             plt.savefig(fig_path)
+            plt.close()
