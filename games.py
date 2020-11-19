@@ -108,7 +108,7 @@ class bargain:
             else:
                 self.positions = position_function(self.G, *args)
 
-    def plot(self, with_labels=False, node_size=500, pause=0.05):
+    def plot(self, with_labels=False, node_size=500, node_shape='o'):
         if self.positions == None:
             # sys.exit('Error!')
             print('Run plot_init() before plot()')
@@ -122,7 +122,8 @@ class bargain:
                 pos=self.positions,
                 with_labels=with_labels,
                 node_size=node_size,
-                node_color=node_color)
+                node_color=node_color,
+                node_shape=node_shape)
 
         plt.pause(0.5)
         plt.show(block=False)
