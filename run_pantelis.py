@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-# n = 6
-n = 33
+n = 6
+# n = 33
 beta = 2.0
 gamma = 0.1
 
