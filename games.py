@@ -29,7 +29,7 @@ class bargain:
 
         J0 = np.array(J0)
         for node in G:
-            G.nodes[node]['J'] = np.random.randint(low=0, high=J0 + 1).astype('float64')
+            G.nodes[node]['J'] = np.random.uniform(low=0, high=J0 + 1).astype('float64')
             G.nodes[node]['P'] = np.exp(self.beta * G.nodes[node]['J'])
             G.nodes[node]['P'] /= np.sum(G.nodes[node]['P'])
 
@@ -176,6 +176,25 @@ class bargain:
 
 
     def plot_statistics(self, fig_size=(10, 10)):
+
+        # Final figure
+        fig, ax = plt.subplots(figsize=fig_size)
+        fig_path = self.results_folder + "/graph_final"
+        node_color = np.array(self.statistics["j_all"])[-1]
+        node_color = node_color / np.amax(node_color)
+        node_size=50
+        pos = nx.spring_layout(self.G, iterations=100)
+        positions = nx.kamada_kawai_layout(self.G, pos=pos)
+        nx.draw(self.G,
+                ax=self.ax,
+                pos=positions,
+                node_size=node_size,
+                node_color=node_color)
+        plt.savefig(fig_path)
+        plt.close()
+
+
+
 
         plot_every = 10
 

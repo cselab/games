@@ -14,17 +14,19 @@ gamma = 0.1
 # J0 = [ 1, 4, 1 ]
 J0 = [ 4, 1, 4 ]
 # J0 = [ 4, 4, 4 ]
-run_name = "_results"
 
-G = gr.lattice_von_neumann(n)
-# G = gr.off_lattice(n * n)
+# lattice = "off_lattice"
+lattice = "lattice_von_neumann"
+
+if lattice == "off_lattice":
+    G = gr.off_lattice(n * n)
+elif lattice == "lattice_von_neumann":
+    G = gr.lattice_von_neumann(n)
+
+run_name = "_results_{:}_{:}_{:}_{:}_{:}".format(n, beta, gamma, J0, lattice)
 
 game = bargain(G, beta=beta, gamma=gamma, J0=J0, folder=run_name)
 
-num_epochs = 1
+num_epochs = 1000
 game.play(num_epochs)
 game.plot_statistics()
-
-game.plot_init()
-game.plot()
-plt.show()

@@ -8,3 +8,4 @@ fontconfig/
 test.py
 
 _results/
+_results*/
