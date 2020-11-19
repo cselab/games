@@ -60,7 +60,7 @@ class bargain:
         with tqdm(total=N_epochs,
                   desc="Running for {:} epochs".format(N_epochs),
                   bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
-
+            self.iter = 0
             for e in range(N_epochs):
                 R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
                 Q = np.random.uniform(low=0.0, high=1.0, size=(self.N_nodes, 2))
@@ -89,10 +89,14 @@ class bargain:
                     node1_data['P'] /= np.sum(node1_data['P'])
                     node2_data['P'] = np.exp(self.beta * node2_data['J'])
                     node2_data['P'] /= np.sum(node2_data['P'])
+                    self.iter += 1
 
                 statistics_epoch = self._get_epoch_statistics()
                 self._update_statistics(statistics_epoch)
                 pbar.update(1)
+
+        print("[games] Total iterations = {:}".format(self.iter))
+        print("[games] Average iterations per agent = {:.2f}".format(self.iter/self.N_nodes))
 
     def plot_init(self, fig_size=(10, 10), position_function=None, *args):
         print(f'[games] Calculating nodes positions...')
