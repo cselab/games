@@ -6,15 +6,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-# n = 6
-n = 33
+n = 6
+# n = 33
 beta = 2.0
+# beta = 0.3
 # beta = 40.0
 gamma = 0.1
 
 # J0 = [ 1, 4, 1 ]
-J0 = [ 4, 1, 4 ]
-# J0 = [ 4, 4, 4 ]
+# J0 = [ 4, 1, 4 ]
+J0 = [ 4, 4, 4 ]
 
 # lattice = "off_lattice"
 lattice = "lattice_von_neumann"
