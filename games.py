@@ -5,6 +5,9 @@ import networkx as nx
 import numpy as np
 import sys
 
+import os
+from tqdm import tqdm
+
 
 def random_choice(p, r):
     return np.argmax(np.cumsum(p) > r)
@@ -12,7 +15,7 @@ def random_choice(p, r):
 
 class bargain:
 
-    def __init__(self, G, beta=1., gamma=0.1, seed=None, J0=[ 4, 4, 4 ], payoff=None):
+    def __init__(self, G, beta=1., gamma=0.1, seed=None, J0=[ 4, 4, 4 ], payoff=None, folder="results", plot=False):
 
         self.G = G
         self.beta = beta
@@ -45,39 +48,54 @@ class bargain:
         self.fig = None
         self.ax = None
 
+        self.results_folder = folder
+        self.plot = plot
+
+        os.makedirs(self.results_folder, exist_ok=True)
+
+        self.statistics = self.initialize_statistics()
+        
     def play(self, N_epochs=10):
         print(f'[games] Simulating {N_epochs} epochs...')
 
-        for e in range(N_epochs):
-            R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
-            Q = np.random.uniform(low=0.0, high=1.0, size=(self.N_nodes, 2))
+        with tqdm(total=N_epochs, desc="Running for {:} epochs".format(N_epochs), bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
 
-            for i in range(self.N_per_epoch):
-                node1 = self.nodes[R[i]]
-                if self.neighbors[R[i]] != []:
-                    s = np.random.randint(0, self.G.degree(node1))
-                    node2 = self.neighbors[R[i]][s]
-                else:
-                    node2 = np.random.randint(0, self.N_nodes)
+            for e in range(N_epochs):
+                R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
+                Q = np.random.uniform(low=0.0, high=1.0, size=(self.N_nodes, 2))
 
-                node1_data = self.G.nodes[node1]
-                node2_data = self.G.nodes[node2]
+                for i in range(self.N_per_epoch):
+                    node1 = self.nodes[R[i]]
+                    if self.neighbors[R[i]] != []:
+                        s = np.random.randint(0, self.G.degree(node1))
+                        node2 = self.neighbors[R[i]][s]
+                    else:
+                        node2 = np.random.randint(0, self.N_nodes)
 
-                action1 = random_choice(node1_data['P'], Q[i, 0])
-                action2 = random_choice(node2_data['P'], Q[i, 1])
+                    node1_data = self.G.nodes[node1]
+                    node2_data = self.G.nodes[node2]
 
-                J1_old = node1_data['J'][action1]
-                J2_old = node2_data['J'][action2]
+                    action1 = random_choice(node1_data['P'], Q[i, 0])
+                    action2 = random_choice(node2_data['P'], Q[i, 1])
 
-                node1_data['J'] *= self.gamma
-                node2_data['J'] *= self.gamma
-                node1_data['J'][action1] = J1_old - node1_data['J'][action1] + self.payoff[action1][action2]
-                node2_data['J'][action2] = J2_old - node2_data['J'][action2] + self.payoff[action2][action1]
+                    J1_old = node1_data['J'][action1]
+                    J2_old = node2_data['J'][action2]
 
-                node1_data['P'] = np.exp(self.beta * node1_data['J'])
-                node1_data['P'] /= np.sum(node1_data['P'])
-                node2_data['P'] = np.exp(self.beta * node2_data['J'])
-                node2_data['P'] /= np.sum(node2_data['P'])
+                    node1_data['J'] *= self.gamma
+                    node2_data['J'] *= self.gamma
+                    node1_data['J'][action1] = J1_old - node1_data['J'][action1] + self.payoff[action1][action2]
+                    node2_data['J'][action2] = J2_old - node2_data['J'][action2] + self.payoff[action2][action1]
+
+                    node1_data['P'] = np.exp(self.beta * node1_data['J'])
+                    node1_data['P'] /= np.sum(node1_data['P'])
+                    node2_data['P'] = np.exp(self.beta * node2_data['J'])
+                    node2_data['P'] /= np.sum(node2_data['P'])
+
+                statistics_epoch = self.get_epoch_statistics()
+                self.update_statistics(statistics_epoch)
+                pbar.update(1)
+
+            if self.plot: self.plot_statistics()
 
     def plot_init(self, fig_size=(10, 10), position_function=None, *args):
         print(f'[games] Calculating nodes positions...')
@@ -107,3 +125,77 @@ class bargain:
 
         plt.pause(0.5)
         plt.show(block=False)
+
+
+    def update_statistics(self, statistics_epoch):
+        for key in self.statistics:
+            self.statistics[key].append(statistics_epoch[key])
+
+    def initialize_statistics(self):
+        statistics = self.get_epoch_statistics()
+        for key in statistics:
+            statistics[key] = [statistics[key]]
+        return statistics
+
+    def get_epoch_statistics(self):
+        p_all = []
+        j_all = []
+        for node in self.G.nodes:
+            node_data = self.G.nodes[node]
+            p_all.append(node_data['P'])
+            j_all.append(node_data['J'])
+
+        p_all = np.array(p_all)
+        p_avg = np.mean(p_all, axis=0)
+
+        j_all = np.array(j_all)
+        j_avg = np.mean(j_all, axis=0)
+
+        statistics ={
+        "p_low":p_avg[0],
+        "p_med":p_avg[1],
+        "p_high":p_avg[2],
+        "j_low":j_avg[0],
+        "j_med":j_avg[1],
+        "j_high":j_avg[2],
+        }
+        return statistics
+
+    def plot_statistics(self, fig_size=(10, 10)):        
+        fig, ax = plt.subplots(figsize=fig_size)
+        fig_path = self.results_folder + "/statistics_P"
+        for key in ["p_low", "p_med", "p_high"]:
+            data = self.statistics[key]
+            ax.plot(np.arange(len(data)), data, label=key)
+        ax.legend()
+        plt.savefig(fig_path)
+
+
+        fig, ax = plt.subplots(figsize=fig_size)
+        fig_path = self.results_folder + "/statistics_J"
+        for key in ["j_low", "j_med", "j_high"]:
+            data = self.statistics[key]
+            ax.plot(np.arange(len(data)), data, label=key)
+        ax.legend()
+        plt.savefig(fig_path)
+
+        # Plotting attractors in the J and P space:
+        for keys in [
+        ["j_low", "j_med"],
+        ["j_low", "j_high"],
+        ["j_med", "j_high"],
+        ["p_low", "p_med"],
+        ["p_low", "p_high"],
+        ["p_med", "p_high"],
+        ]:
+            key1, key2 = keys
+
+            fig, ax = plt.subplots(figsize=fig_size)
+            fig_path = self.results_folder + "/statistics_{:}-{:}".format(key1, key2)
+            data1 = self.statistics[key1]
+            data2 = self.statistics[key2]
+            ax.plot(data1, data2)
+            ax.set_xlabel(key1)
+            ax.set_ylabel(key2)
+            plt.savefig(fig_path)
+
