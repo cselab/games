@@ -150,6 +150,8 @@ class bargain:
         j_avg = np.mean(j_all, axis=0)
 
         statistics = {
+            "p_all": p_all,
+            "j_all": j_all,
             "p_low": p_avg[0],
             "p_med": p_avg[1],
             "p_high": p_avg[2],
@@ -160,9 +162,29 @@ class bargain:
         return statistics
 
     def plot_statistics(self, fig_size=(10, 10)):
+
+        p = self.statistics["p_all"]
+        p = np.array(p)
+
+        den = np.sum(p, axis=2)
+
+        # (J2 + J3/2)/(J1+J2+J3)
+        p_x = (p[:,:,1] + p[:,:,2]/2.0) / den
+        # \sqrt(3) * J3/2 /(J1+J2+J3)
+        p_y = np.sqrt(3) * p[:,:,2] / 2.0 / den
+
+        fig, ax = plt.subplots(figsize=fig_size)
+        fig_path = self.results_folder + "/simplex"
+        for particle in range(np.shape(p_x)[1]):
+            x = p_x[:,particle]
+            y = p_y[:,particle]
+            ax.plot(x, y)
+        plt.savefig(fig_path)
+
+
+
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/statistics_P"
-
         for key in [ "p_low", "p_med", "p_high"]:
             data = self.statistics[key]
             ax.plot(np.arange(len(data)), data, label=key)
