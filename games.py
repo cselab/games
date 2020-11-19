@@ -188,6 +188,7 @@ class bargain:
             y = p_y[::plot_every,particle]
             ax.plot(x, y)
         plt.savefig(fig_path)
+        plt.close()
 
         j = np.array(self.statistics["j_all"])
         j_x, j_y = self.get_vertex_positions(j)
@@ -198,6 +199,7 @@ class bargain:
             y = j_y[::plot_every,particle]
             ax.plot(x, y)
         plt.savefig(fig_path)
+        plt.close()
 
 
         fig, ax = plt.subplots(figsize=fig_size)
