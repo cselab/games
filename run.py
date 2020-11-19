@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-n = 10
+n = 33
 beta = 4
 gamma = 0.1
 
@@ -19,9 +19,9 @@ game = bargain(G, beta=2., J0=[ 4, 1, 4 ])
 game.plot_init()
 
 game.plot(with_labels=False)
-#
+
 for k in range(50):
     game.play(100)
     game.plot()
-#
+
 plt.show()

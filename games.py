@@ -46,6 +46,7 @@ class bargain:
         self.ax = None
 
     def play(self, N_epochs=10):
+        print(f'[games] Simulating {N_epochs} epochs...')
 
         for e in range(N_epochs):
             R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
@@ -79,6 +80,7 @@ class bargain:
                 node2_data['P'] /= np.sum(node2_data['P'])
 
     def plot_init(self, fig_size=(10, 10), position_function=None, *args):
+        print(f'[games] Calculating nodes positions...')
         self.fig, self.ax = plt.subplots(figsize=fig_size)
         if self.positions == None:
             if position_function == None:
