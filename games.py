@@ -128,6 +128,9 @@ class bargain:
         node_color = [list(self.G.nodes[node]['J']) for node in self.G]
         node_color = np.vstack(node_color)
         node_color = node_color / np.amax(node_color)
+
+        self.ax.clear()
+
         nx.draw(self.G,
                 ax=self.ax,
                 pos=self.positions,

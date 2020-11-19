@@ -3,11 +3,12 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 
+n=5
 # G = nx.erdos_renyi_graph(100, 0.15)
 # G = nx.triangular_lattice_graph(10,10)
-# G = nx.grid_2d_graph(5,5)
+G = nx.grid_2d_graph(n,n)
 # G = nx.hexagonal_lattice_graph(4,4)
-G = nx.path_graph(11)
+# G = nx.path_graph(11)
 
 pos = nx.spring_layout(G, iterations=100)
 pos = nx.kamada_kawai_layout(G, pos=pos)

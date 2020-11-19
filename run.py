@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-n = 15
-beta = 40
+n = 10
+beta = 4
 gamma = 0.1
 
-G = gr.lattice_von_neumann(n)
+# G = gr.lattice_von_neumann(n)
+G = gr.lattice_moore(n)
 # G = gr.path(n*n)
 # G = gr.off_lattice(n * n)
 
