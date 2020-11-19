@@ -13,6 +13,15 @@ def random_choice(p, r):
     return np.argmax(np.cumsum(p) > r)
 
 
+def size_of_nodes(x):
+    x = np.sqrt(x)
+    a = 9.7981
+    b = -0.2964
+    c = 7.1286
+    d = -0.0781
+    return np.exp(b*x + a) + np.exp(d*x + c)
+
+
 class bargain:
 
     def __init__(self, G, beta=1., gamma=0.1, seed=None, J0=[ 4, 4, 4 ], payoff=None, folder="_results"):
@@ -79,7 +88,6 @@ class bargain:
                     action1 = random_choice(node1_data['P'], Q[i, 0])
                     action2 = random_choice(node2_data['P'], Q[i, 1])
 
-
                     node1_data['J'] *= (1.0 - self.gamma)
                     node2_data['J'] *= (1.0 - self.gamma)
                     node1_data['J'][action1] += self.payoff[action1][action2]
@@ -108,11 +116,14 @@ class bargain:
             else:
                 self.positions = position_function(self.G, *args)
 
-    def plot(self, with_labels=False, node_size=500, node_shape='o'):
+    def plot(self, with_labels=False, node_size=None, node_shape='o'):
         if self.positions == None:
             # sys.exit('Error!')
             print('Run plot_init() before plot()')
             return
+
+        if node_size == None:
+            node_size = size_of_nodes(self.N_nodes)
 
         node_color = [list(self.G.nodes[node]['J']) for node in self.G]
         node_color = np.vstack(node_color)
@@ -165,20 +176,19 @@ class bargain:
         return statistics
 
     def get_vertex_positions(self, data):
-        assert(len(np.shape(data))==3)
+        assert (len(np.shape(data)) == 3)
         # data of the form [T, N, 3]
 
         # (J1+J2+J3)
         den = np.sum(data, axis=2)
 
         # (J2 + J3/2)/(J1+J2+J3)
-        data_x = (data[:,:,1] + data[:,:,2]/2.0) / den
+        data_x = (data[:, :, 1] + data[:, :, 2] / 2.0) / den
 
         # \sqrt(3) * J3/2 /(J1+J2+J3)
-        data_y = np.sqrt(3) * data[:,:,2] / 2.0 / den
+        data_y = np.sqrt(3) * data[:, :, 2] / 2.0 / den
 
         return data_x, data_y
-
 
     def plot_statistics(self, fig_size=(10, 10)):
 
@@ -187,19 +197,12 @@ class bargain:
         fig_path = self.results_folder + "/graph_final"
         node_color = np.array(self.statistics["j_all"])[-1]
         node_color = node_color / np.amax(node_color)
-        node_size=50
+        node_size = 50
         pos = nx.spring_layout(self.G, iterations=100)
         positions = nx.kamada_kawai_layout(self.G, pos=pos)
-        nx.draw(self.G,
-                ax=self.ax,
-                pos=positions,
-                node_size=node_size,
-                node_color=node_color)
+        nx.draw(self.G, ax=self.ax, pos=positions, node_size=node_size, node_color=node_color)
         plt.savefig(fig_path)
         plt.close()
-
-
-
 
         plot_every = 10
 
@@ -208,8 +211,8 @@ class bargain:
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/simplex_P"
         for particle in range(np.shape(p_x)[1]):
-            x = p_x[::plot_every,particle]
-            y = p_y[::plot_every,particle]
+            x = p_x[::plot_every, particle]
+            y = p_y[::plot_every, particle]
             ax.plot(x, y)
         plt.savefig(fig_path)
         plt.close()
@@ -219,12 +222,11 @@ class bargain:
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/simplex_J"
         for particle in range(np.shape(p_x)[1]):
-            x = j_x[::plot_every,particle]
-            y = j_y[::plot_every,particle]
+            x = j_x[::plot_every, particle]
+            y = j_y[::plot_every, particle]
             ax.plot(x, y)
         plt.savefig(fig_path)
         plt.close()
-
 
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/statistics_P"
