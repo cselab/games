@@ -26,7 +26,7 @@ class bargain:
 
         J0 = np.array(J0)
         for node in G:
-            G.nodes[node]['J'] = np.random.randint(0, J0 + 1).astype('float64')
+            G.nodes[node]['J'] = np.random.randint(low=0, high=J0 + 1).astype('float64')
             G.nodes[node]['P'] = np.exp(self.beta * G.nodes[node]['J'])
             G.nodes[node]['P'] /= np.sum(G.nodes[node]['P'])
 
@@ -53,8 +53,11 @@ class bargain:
 
             for i in range(self.N_per_epoch):
                 node1 = self.nodes[R[i]]
-                s = np.random.randint(0, self.G.degree(node1))
-                node2 = self.neighbors[R[i]][s]
+                if self.neighbors[R[i]] != []:
+                    s = np.random.randint(0, self.G.degree(node1))
+                    node2 = self.neighbors[R[i]][s]
+                else:
+                    node2 = np.random.randint(0, self.N_nodes)
 
                 node1_data = self.G.nodes[node1]
                 node2_data = self.G.nodes[node2]
@@ -75,11 +78,14 @@ class bargain:
                 node2_data['P'] = np.exp(self.beta * node2_data['J'])
                 node2_data['P'] /= np.sum(node2_data['P'])
 
-    def plot_init(self, fig_size=(10, 10)):
+    def plot_init(self, fig_size=(10, 10), position_function=None, *args):
         self.fig, self.ax = plt.subplots(figsize=fig_size)
         if self.positions == None:
-            pos = nx.spring_layout(self.G, iterations=100)
-            self.positions = nx.kamada_kawai_layout(self.G, pos=pos)
+            if position_function == None:
+                pos = nx.spring_layout(self.G, iterations=100)
+                self.positions = nx.kamada_kawai_layout(self.G, pos=pos)
+            else:
+                self.positions = position_function(self.G, *args)
 
     def plot(self, with_labels=False, node_size=500, pause=0.05):
         if self.positions == None:

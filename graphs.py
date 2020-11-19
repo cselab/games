@@ -26,6 +26,12 @@ def path(n):
     return G
 
 
+def off_lattice(n):
+    G = nx.empty_graph(n)
+    G = relabel(G)
+    return G
+
+
 def relabel(G):
     labels = {}
     for k, x in enumerate(G):
