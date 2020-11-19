@@ -79,13 +79,11 @@ class bargain:
                     action1 = random_choice(node1_data['P'], Q[i, 0])
                     action2 = random_choice(node2_data['P'], Q[i, 1])
 
-                    J1_old = node1_data['J'][action1]
-                    J2_old = node2_data['J'][action2]
 
-                    node1_data['J'] *= self.gamma
-                    node2_data['J'] *= self.gamma
-                    node1_data['J'][action1] = J1_old - node1_data['J'][action1] + self.payoff[action1][action2]
-                    node2_data['J'][action2] = J2_old - node2_data['J'][action2] + self.payoff[action2][action1]
+                    node1_data['J'] *= (1.0 - self.gamma)
+                    node2_data['J'] *= (1.0 - self.gamma)
+                    node1_data['J'][action1] += self.payoff[action1][action2]
+                    node2_data['J'][action2] += self.payoff[action2][action1]
 
                     node1_data['P'] = np.exp(self.beta * node1_data['J'])
                     node1_data['P'] /= np.sum(node1_data['P'])
@@ -151,6 +149,8 @@ class bargain:
         j_avg = np.mean(j_all, axis=0)
 
         statistics = {
+            "p_all": p_all,
+            "j_all": j_all,
             "p_low": p_avg[0],
             "p_med": p_avg[1],
             "p_high": p_avg[2],
@@ -160,10 +160,49 @@ class bargain:
         }
         return statistics
 
+    def get_vertex_positions(self, data):
+        assert(len(np.shape(data))==3)
+        # data of the form [T, N, 3]
+
+        # (J1+J2+J3)
+        den = np.sum(data, axis=2)
+
+        # (J2 + J3/2)/(J1+J2+J3)
+        data_x = (data[:,:,1] + data[:,:,2]/2.0) / den
+
+        # \sqrt(3) * J3/2 /(J1+J2+J3)
+        data_y = np.sqrt(3) * data[:,:,2] / 2.0 / den
+
+        return data_x, data_y
+
+
     def plot_statistics(self, fig_size=(10, 10)):
+
+        plot_every = 10
+
+        p = np.array(self.statistics["p_all"])
+        p_x, p_y = self.get_vertex_positions(p)
+        fig, ax = plt.subplots(figsize=fig_size)
+        fig_path = self.results_folder + "/simplex_P"
+        for particle in range(np.shape(p_x)[1]):
+            x = p_x[::plot_every,particle]
+            y = p_y[::plot_every,particle]
+            ax.plot(x, y)
+        plt.savefig(fig_path)
+
+        j = np.array(self.statistics["j_all"])
+        j_x, j_y = self.get_vertex_positions(j)
+        fig, ax = plt.subplots(figsize=fig_size)
+        fig_path = self.results_folder + "/simplex_J"
+        for particle in range(np.shape(p_x)[1]):
+            x = j_x[::plot_every,particle]
+            y = j_y[::plot_every,particle]
+            ax.plot(x, y)
+        plt.savefig(fig_path)
+
+
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/statistics_P"
-
         for key in [ "p_low", "p_med", "p_high"]:
             data = self.statistics[key]
             ax.plot(np.arange(len(data)), data, label=key)
