@@ -10,7 +10,8 @@ n = 10
 beta = 4
 gamma = 0.1
 
-G = gr.lattice_von_neumann(n)
+# G = gr.lattice_von_neumann(n)
+G = gr.lattice_moore(n)
 # G = gr.path(n*n)
 # G = gr.off_lattice(n * n)
 
@@ -23,5 +24,5 @@ game.plot()
 for k in range(10):
     game.play(100)
     game.plot()
-    
+
 plt.show()
