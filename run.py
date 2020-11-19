@@ -7,7 +7,7 @@ import numpy as np
 import networkx as nx
 
 n = 33
-beta = 4
+beta = 40
 gamma = 0.1
 
 G = gr.lattice_von_neumann(n)
@@ -20,8 +20,8 @@ game.plot_init()
 
 game.plot(with_labels=False)
 
-for k in range(50):
-    game.play(100)
-    game.plot()
-
-plt.show()
+# for k in range(50):
+#     game.play(100)
+#     game.plot()
+#
+# plt.show()
