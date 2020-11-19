@@ -3,3 +3,5 @@ fontconfig/
 *.swp
 
 test.py
+
+_results/

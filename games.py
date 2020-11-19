@@ -15,7 +15,7 @@ def random_choice(p, r):
 
 class bargain:
 
-    def __init__(self, G, beta=1., gamma=0.1, seed=None, J0=[ 4, 4, 4 ], payoff=None, folder="results", plot=False):
+    def __init__(self, G, beta=1., gamma=0.1, seed=None, J0=[ 4, 4, 4 ], payoff=None, folder="_results"):
 
         self.G = G
         self.beta = beta
@@ -49,16 +49,17 @@ class bargain:
         self.ax = None
 
         self.results_folder = folder
-        self.plot = plot
 
         os.makedirs(self.results_folder, exist_ok=True)
 
-        self.statistics = self.initialize_statistics()
-        
+        self.statistics = self._initialize_statistics()
+
     def play(self, N_epochs=10):
         print(f'[games] Simulating {N_epochs} epochs...')
 
-        with tqdm(total=N_epochs, desc="Running for {:} epochs".format(N_epochs), bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
+        with tqdm(total=N_epochs,
+                  desc="Running for {:} epochs".format(N_epochs),
+                  bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
 
             for e in range(N_epochs):
                 R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
@@ -91,11 +92,9 @@ class bargain:
                     node2_data['P'] = np.exp(self.beta * node2_data['J'])
                     node2_data['P'] /= np.sum(node2_data['P'])
 
-                statistics_epoch = self.get_epoch_statistics()
-                self.update_statistics(statistics_epoch)
+                statistics_epoch = self._get_epoch_statistics()
+                self._update_statistics(statistics_epoch)
                 pbar.update(1)
-
-            if self.plot: self.plot_statistics()
 
     def plot_init(self, fig_size=(10, 10), position_function=None, *args):
         print(f'[games] Calculating nodes positions...')
@@ -126,18 +125,17 @@ class bargain:
         plt.pause(0.5)
         plt.show(block=False)
 
-
-    def update_statistics(self, statistics_epoch):
+    def _update_statistics(self, statistics_epoch):
         for key in self.statistics:
             self.statistics[key].append(statistics_epoch[key])
 
-    def initialize_statistics(self):
-        statistics = self.get_epoch_statistics()
+    def _initialize_statistics(self):
+        statistics = self._get_epoch_statistics()
         for key in statistics:
             statistics[key] = [statistics[key]]
         return statistics
 
-    def get_epoch_statistics(self):
+    def _get_epoch_statistics(self):
         p_all = []
         j_all = []
         for node in self.G.nodes:
@@ -151,29 +149,29 @@ class bargain:
         j_all = np.array(j_all)
         j_avg = np.mean(j_all, axis=0)
 
-        statistics ={
-        "p_low":p_avg[0],
-        "p_med":p_avg[1],
-        "p_high":p_avg[2],
-        "j_low":j_avg[0],
-        "j_med":j_avg[1],
-        "j_high":j_avg[2],
+        statistics = {
+            "p_low": p_avg[0],
+            "p_med": p_avg[1],
+            "p_high": p_avg[2],
+            "j_low": j_avg[0],
+            "j_med": j_avg[1],
+            "j_high": j_avg[2],
         }
         return statistics
 
-    def plot_statistics(self, fig_size=(10, 10)):        
+    def plot_statistics(self, fig_size=(10, 10)):
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/statistics_P"
-        for key in ["p_low", "p_med", "p_high"]:
+
+        for key in [ "p_low", "p_med", "p_high"]:
             data = self.statistics[key]
             ax.plot(np.arange(len(data)), data, label=key)
         ax.legend()
         plt.savefig(fig_path)
 
-
         fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/statistics_J"
-        for key in ["j_low", "j_med", "j_high"]:
+        for key in [ "j_low", "j_med", "j_high"]:
             data = self.statistics[key]
             ax.plot(np.arange(len(data)), data, label=key)
         ax.legend()
@@ -181,12 +179,12 @@ class bargain:
 
         # Plotting attractors in the J and P space:
         for keys in [
-        ["j_low", "j_med"],
-        ["j_low", "j_high"],
-        ["j_med", "j_high"],
-        ["p_low", "p_med"],
-        ["p_low", "p_high"],
-        ["p_med", "p_high"],
+            [ "j_low", "j_med"],
+            [ "j_low", "j_high"],
+            [ "j_med", "j_high"],
+            [ "p_low", "p_med"],
+            [ "p_low", "p_high"],
+            [ "p_med", "p_high"],
         ]:
             key1, key2 = keys
 
@@ -198,4 +196,3 @@ class bargain:
             ax.set_xlabel(key1)
             ax.set_ylabel(key2)
             plt.savefig(fig_path)
-

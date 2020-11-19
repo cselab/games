@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-n = 33
+n = 10
 beta = 40
 gamma = 0.1
 
@@ -20,8 +20,10 @@ game.plot_init()
 
 game.plot(with_labels=False)
 
-# for k in range(50):
-#     game.play(100)
-#     game.plot()
-#
-# plt.show()
+for k in range(50):
+    game.play(1000)
+    game.plot()
+    game.plot_statistics()
+
+
+plt.show()
