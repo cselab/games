@@ -14,7 +14,7 @@ gamma = 0.1
 # J0 = [ 1, 4, 1 ]
 J0 = [ 4, 1, 4 ]
 # J0 = [ 4, 4, 4 ]
-run_name = "example"
+run_name = "_results"
 
 G = gr.lattice_von_neumann(n)
 # G = gr.off_lattice(n * n)
