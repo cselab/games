@@ -1,0 +1,5 @@
+__pycache__/
+fontconfig/
+*.swp
+
+test.py

@@ -4,7 +4,7 @@ import networkx as nx
 
 
 
-def grid_von_neumann(n):
+def lattice_von_neumann(n):
     G = nx.grid_2d_graph(n, n)
     return G
 
@@ -12,3 +12,15 @@ def grid_von_neumann(n):
     # for k,x in enumerate(G):
     #     labels[x] = k
     # G = nx.relabel_nodes(G, labels)
+
+def lattice_hexagonal(n):
+    G = nx.hexagonal_lattice_graph(n,n)
+    return G
+
+def lattice_triangular(n):
+    G = nx.triangular_lattice_graph(n,n)
+    return G
+
+def path(n):
+    G = nx.path_graph(n)
+    return G

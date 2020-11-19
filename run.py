@@ -4,11 +4,11 @@ from games import bargain
 import graphs as gr
 import matplotlib.pyplot as plt
 
-n = 5
-beta = 2
+n = 33
+beta = 4
 gamma = 0.1
 
-G = gr.grid_von_neumann(n)
+G = gr.lattice_von_neumann(n)
 
 game = bargain(G,beta=2.)
 

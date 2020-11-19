@@ -31,8 +31,8 @@ class bargain:
             self.payoff[0] = [ 0.3, 0.3, 0.3 ]
             self.payoff[1] = [ 0.5, 0.5, 0.0 ]
             self.payoff[2] = [ 0.7, 0.0, 0.0 ]
+            self.gamma_payoff = self.gamma * self.payoff
 
-        self.gamma_payoff = self.gamma * self.payoff
 
         self.N_per_epoch = np.ceil(self.N_nodes / 2).astype(int)
 
@@ -59,15 +59,13 @@ class bargain:
                 action1 = np.random.choice(3, size=1, p=node1_data['P'])[0]
                 action2 = np.random.choice(3, size=1, p=node2_data['P'])[0]
 
-                gamma_pay = self.payoff[action1][action2]
-
                 J1_old = node1_data['J'][action1]
                 J2_old = node2_data['J'][action2]
 
                 node1_data['J'] *= self.gamma
                 node2_data['J'] *= self.gamma
-                node1_data['J'][action1] = J1_old - node1_data['J'][action1] + gamma_pay
-                node2_data['J'][action2] = J2_old - node2_data['J'][action2] + gamma_pay
+                node1_data['J'][action1] = J1_old - node1_data['J'][action1] + self.payoff[action1][action2]
+                node2_data['J'][action2] = J2_old - node2_data['J'][action2] + self.payoff[action2][action1]
 
                 node1_data['P'] = np.exp(self.beta * node1_data['J'])
                 node1_data['P'] /= np.sum(node1_data['P'])
@@ -77,7 +75,8 @@ class bargain:
     def plot_init(self, fig_size=(10, 10) ):
         self.fig, self.ax = plt.subplots(figsize=fig_size)
         if self.positions == None:
-            self.positions = nx.kamada_kawai_layout(self.G)
+            pos = nx.spring_layout(self.G, iterations=100)
+            self.positions = nx.kamada_kawai_layout(self.G, pos=pos)
 
 
     def plot(self,  with_labels=False, node_size=500, pause=0.05):
