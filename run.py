@@ -23,7 +23,5 @@ game.plot()
 for k in range(10):
     game.play(100)
     game.plot()
-
-game.plot_statistics()
-
+    
 plt.show()
