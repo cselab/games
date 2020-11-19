@@ -62,14 +62,14 @@ class bargain:
         os.makedirs(self.results_folder, exist_ok=True)
 
         self.statistics = self._initialize_statistics()
+        self.iter = 0
 
     def play(self, N_epochs=10):
         print(f'[games] Simulating {N_epochs} epochs...')
 
         with tqdm(total=N_epochs,
-                  desc="Running for {:} epochs".format(N_epochs),
+                  desc="[games] Running for {:} epochs".format(N_epochs),
                   bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
-            self.iter = 0
             for e in range(N_epochs):
                 R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
                 Q = np.random.uniform(low=0.0, high=1.0, size=(self.N_nodes, 2))
@@ -134,10 +134,16 @@ class bargain:
                 with_labels=with_labels,
                 node_size=node_size,
                 node_color=node_color,
-                node_shape=node_shape)
+                node_shape=node_shape,
+                )
 
         plt.pause(0.5)
         plt.show(block=False)
+
+
+
+
+
 
     def _update_statistics(self, statistics_epoch):
         for key in self.statistics:
@@ -163,9 +169,19 @@ class bargain:
         j_all = np.array(j_all)
         j_avg = np.mean(j_all, axis=0)
 
+        # find the percentage of nodes that pick a specific probability
+
+        epsilon = 0.01
+        per_low = np.sum(p_all[:,0]>1.0-epsilon)
+        per_med = np.sum(p_all[:,1]>1.0-epsilon)
+        per_high = np.sum(p_all[:,2]>1.0-epsilon)
+
         statistics = {
             "p_all": p_all,
             "j_all": j_all,
+            "per_low": per_low,
+            "per_med": per_med,
+            "per_high": per_high,
             "p_low": p_avg[0],
             "p_med": p_avg[1],
             "p_high": p_avg[2],
@@ -192,17 +208,38 @@ class bargain:
 
     def plot_statistics(self, fig_size=(10, 10)):
 
-        # Final figure
+        # # Final figure
+        # fig, ax = plt.subplots(figsize=fig_size)
+        # fig_path = self.results_folder + "/graph_final"
+        # node_color = np.array(self.statistics["j_all"])[-1]
+        # # node_color = node_color / np.amax(node_color)
+        # # print(np.shape(node_color))
+        # # print(np.amax(node_color))
+        # # print(np.amax(node_color, axis=0))
+        # # print(np.shape(np.amax(node_color)))
+        # node_color = node_color / np.amax(node_color, axis=0)
+        # node_size = 50
+        # pos = nx.spring_layout(self.G, iterations=100)
+        # positions = nx.kamada_kawai_layout(self.G, pos=pos)
+        # nx.draw(self.G, ax=self.ax, pos=positions, node_size=node_size, node_color=node_color)
+        # plt.savefig(fig_path)
+        # plt.close()
+
+
+        p = np.array(self.statistics["p_all"])
         fig, ax = plt.subplots(figsize=fig_size)
-        fig_path = self.results_folder + "/graph_final"
-        node_color = np.array(self.statistics["j_all"])[-1]
-        node_color = node_color / np.amax(node_color)
-        node_size = 50
-        pos = nx.spring_layout(self.G, iterations=100)
-        positions = nx.kamada_kawai_layout(self.G, pos=pos)
-        nx.draw(self.G, ax=self.ax, pos=positions, node_size=node_size, node_color=node_color)
+        fig_path = self.results_folder + "/evolution_P"
+        keys    = ["L", "M", "H"]
+        colors  = ["tab:red", "tab:green", "tab:blue"]
+        for i in range(np.shape(p)[2]):
+            color = colors[i]
+            key = keys[i]
+            for particle in range(np.shape(p)[1]):
+                data = p[:, particle, i ]
+                ax.plot(np.arange(len(data)), data, label=key, color=color)
         plt.savefig(fig_path)
         plt.close()
+
 
         plot_every = 10
 
@@ -229,8 +266,25 @@ class bargain:
         plt.close()
 
         fig, ax = plt.subplots(figsize=fig_size)
+        fig_path = self.results_folder + "/percentage_of_nodes_P"
+        for key in [
+            "per_low",
+            "per_med",
+            "per_high",
+            ]:
+            data = self.statistics[key]
+            ax.plot(np.arange(len(data)), data, label=key)
+        ax.legend()
+        plt.savefig(fig_path)
+        plt.close()
+
+        fig, ax = plt.subplots(figsize=fig_size)
         fig_path = self.results_folder + "/statistics_P"
-        for key in [ "p_low", "p_med", "p_high"]:
+        for key in [
+                    "p_low",
+                    "p_med",
+                    "p_high",
+                    ]:
             data = self.statistics[key]
             ax.plot(np.arange(len(data)), data, label=key)
         ax.legend()

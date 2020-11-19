@@ -21,7 +21,8 @@ game.plot_init()
 game.plot()
 
 for k in range(10):
-    game.play(100)
+    game.play(200)
     game.plot()
 
 plt.show()
+game.plot_statistics()
