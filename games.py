@@ -67,7 +67,7 @@ class bargain:
         print(f'[games] Simulating {N_epochs} epochs...')
 
         with tqdm(total=N_epochs,
-                  desc="Running for {:} epochs".format(N_epochs),
+                  desc="[games] Running for {:} epochs".format(N_epochs),
                   bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
 
             for e in range(N_epochs):
@@ -124,6 +124,9 @@ class bargain:
         node_color = [list(self.G.nodes[node]['J']) for node in self.G]
         node_color = np.vstack(node_color)
         node_color = node_color / np.amax(node_color)
+
+        self.ax.clear()
+
         nx.draw(self.G,
                 ax=self.ax,
                 pos=self.positions,
