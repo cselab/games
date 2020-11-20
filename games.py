@@ -89,12 +89,14 @@ class bargain:
         self.iter = 0
 
     def __del__(self):
-        for fig in self.fig_stats:
-            plt.close(fig)
-        for fig in self.fig_graph:
-            plt.close(fig)
+        if self.fig_stats != None:
+            for fig in self.fig_stats:
+                plt.close(fig)
+        if self.fig_graph != None:
+            for fig in self.fig_graph:
+                plt.close(fig)
 
-    def _energy(self,x):
+    def _energy(self, x):
         return np.exp(self.beta * x)
 
     def play(self, N_epochs=10):
@@ -225,9 +227,9 @@ class bargain:
 
         # find the percentage of nodes that pick a specific probability per tag
         epsilon = 0.01
-        per_L = np.sum(p_all[:, :, 0] > 1.0 - epsilon, axis=0)#/self.N_nodes
-        per_M = np.sum(p_all[:, :, 1] > 1.0 - epsilon, axis=0)#/self.N_nodes
-        per_H = np.sum(p_all[:, :, 2] > 1.0 - epsilon, axis=0)#/self.N_nodes
+        per_L = np.sum(p_all[:, :, 0] > 1.0 - epsilon, axis=0)  #/self.N_nodes
+        per_M = np.sum(p_all[:, :, 1] > 1.0 - epsilon, axis=0)  #/self.N_nodes
+        per_H = np.sum(p_all[:, :, 2] > 1.0 - epsilon, axis=0)  #/self.N_nodes
 
         # np.set_printoptions(threshold=np.inf)
 
