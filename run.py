@@ -6,25 +6,29 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-n = 20
+import pretty_errors
+
+n = 10
 beta = 4
 gamma = 0.1
 
+node_size = 200
+
 # G = gr.lattice_von_neumann(n)
 # G = gr.lattice_moore(n)
-G = gr.barabasi_albert(n*n, k=2); node_size=50
+G = gr.barabasi_albert(n * n, k=1)
 # G = gr.path(n*n)
 # G = gr.off_lattice(n * n)
 
-game = bargain(G, beta=2., J0=[ 4, 4, 4 ])
+game = bargain(G, beta=2., J0=[ 4, 4, 4 ], N_tags=2)
 
 game.plot_init()
 
 game.plot(node_size=node_size)
 
-for k in range(30):
+for k in range(10):
     game.play(100)
-    game.plot(node_size=node_size)
+    game.plot(node_size=node_size, silent=True)
+    game.plot_statistics()
 
 plt.show()
-game.plot_statistics()
