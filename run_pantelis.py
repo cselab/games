@@ -6,9 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-# n = 6
-n = 33
+n = 6
+# n = 33
 beta = 2.0
+# beta = 0.3
+# beta = 40.0
 gamma = 0.1
 
 # J0 = [ 1, 4, 1 ]
@@ -27,6 +29,6 @@ run_name = "_results_{:}_{:}_{:}_{:}_{:}".format(n, beta, gamma, J0, lattice)
 
 game = bargain(G, beta=beta, gamma=gamma, J0=J0, folder=run_name)
 
-num_epochs = 25000
+num_epochs = 200
 game.play(num_epochs)
 game.plot_statistics()

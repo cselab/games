@@ -27,3 +27,4 @@ for k in range(30):
     game.plot(node_size=node_size)
 
 plt.show()
+game.plot_statistics()
