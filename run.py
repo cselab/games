@@ -8,7 +8,7 @@ import networkx as nx
 
 import pretty_errors
 
-n = 10
+n = 20
 beta = 4
 gamma = 0.1
 
@@ -16,11 +16,11 @@ node_size = 200
 
 # G = gr.lattice_von_neumann(n)
 # G = gr.lattice_moore(n)
-G = gr.barabasi_albert(n * n, k=1)
+G = gr.barabasi_albert(n * n, k=2)
 # G = gr.path(n*n)
 # G = gr.off_lattice(n * n)
 
-game = bargain(G, beta=2., J0=[ 4, 4, 4 ], N_tags=2)
+game = bargain(G, beta=2., J0=[ 4, 4, 4 ], N_tags=4)
 
 game.plot_init()
 

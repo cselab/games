@@ -268,7 +268,7 @@ class bargain:
                 self.ax_stats[k].plot(
                     np.arange(len(data)),
                     data[:,l],
-                    label=level_key+' of tag '+str(k),
+                    label=level_key+' of tag '+str(l),
                     color=level_colors[level_key],
                     marker=self.node_shapes[l],
                     linewidth=linewidth,
