@@ -3,15 +3,18 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 
-n=5
+n = 5
 # G = nx.erdos_renyi_graph(100, 0.15)
 # G = nx.triangular_lattice_graph(10,10)
-G = nx.grid_2d_graph(n,n)
+G = nx.grid_2d_graph(n, n)
 # G = nx.hexagonal_lattice_graph(4,4)
 # G = nx.path_graph(11)
+# G = nx.watts_strogatz_graph(20, 4, 0.4)
+G = nx.barabasi_albert_graph(50, 1)
 
+pos = nx.circular_layout(G)
 pos = nx.spring_layout(G, iterations=100)
-pos = nx.kamada_kawai_layout(G, pos=pos)
+# pos = nx.kamada_kawai_layout(G, pos=pos)
 
 # G = nx.complete_multipartite_graph(8, 4, 8)
 # pos = nx.multipartite_layout(G)

@@ -104,7 +104,7 @@ class bargain:
                 pbar.update(1)
 
         print("[games] Total iterations = {:}".format(self.iter))
-        print("[games] Average iterations per agent = {:.2f}".format(self.iter/self.N_nodes))
+        print("[games] Average iterations per agent = {:.2f}".format(self.iter / self.N_nodes))
 
     def plot_init(self, fig_size=(10, 10), position_function=None, *args):
         print(f'[games] Calculating nodes positions...')
