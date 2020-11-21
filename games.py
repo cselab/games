@@ -63,6 +63,8 @@ class bargain:
                 this_node['tag'] = tag
             self.nodes_with_tag[this_node['tag']].append(node)
 
+            this_node['last action'] = None
+
         if payoff == None:
             self.payoff = np.zeros((3, 3))
             self.payoff[0] = [ 0.3, 0.3, 0.3 ]
@@ -85,7 +87,7 @@ class bargain:
 
         os.makedirs(self.results_folder, exist_ok=True)
 
-        self.statistics = self._initialize_statistics()
+        self.statistics = None
         self.iter = 0
 
     def __del__(self):
@@ -105,6 +107,8 @@ class bargain:
         with tqdm(total=N_epochs,
                   desc='[games] Running for {:} epochs'.format(N_epochs),
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
+
+            self._update_statistics()
 
             for e in range(N_epochs):
                 R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
@@ -126,6 +130,9 @@ class bargain:
                     action1 = random_choice(node1_data['P'][tag2], Q[i, 0])
                     action2 = random_choice(node2_data['P'][tag1], Q[i, 1])
 
+                    node1_data['last action'] = action1
+                    node2_data['last action'] = action2
+
                     node1_data['J'][tag2] *= (1.0 - self.gamma)
                     node2_data['J'][tag1] *= (1.0 - self.gamma)
                     node1_data['J'][tag2][action1] += self.payoff[action1][action2]
@@ -137,8 +144,7 @@ class bargain:
                     node2_data['P'][tag1] /= np.sum(node2_data['P'][tag1])
                     self.iter += 1
 
-                statistics_epoch = self._get_epoch_statistics()
-                self._update_statistics(statistics_epoch)
+                self._update_statistics()
                 pbar.update(1)
 
         print('[games] Total iterations = {:}'.format(self.iter))
@@ -205,19 +211,7 @@ class bargain:
             plt.pause(0.005)
             plt.show(block=False)
 
-    def _update_statistics(self, statistics_epoch):
-        for key in self.statistics:
-            self.statistics[key].append(statistics_epoch[key])
-
-    def _initialize_statistics(self):
-        statistics = self._get_epoch_statistics()
-        for key in statistics:
-            statistics[key] = [statistics[key]]
-
-        return statistics
-
-    def _get_epoch_statistics(self):
-
+    def _update_statistics(self):
         p_all = np.zeros((self.N_nodes, self.N_tags, 3))
         j_all = np.zeros((self.N_nodes, self.N_tags, 3))
         for i in range(self.N_nodes):
@@ -227,11 +221,10 @@ class bargain:
 
         # find the percentage of nodes that pick a specific probability per tag
         epsilon = 0.01
-        per_L = np.sum(p_all[:, :, 0] > 1.0 - epsilon, axis=0)  #/self.N_nodes
-        per_M = np.sum(p_all[:, :, 1] > 1.0 - epsilon, axis=0)  #/self.N_nodes
-        per_H = np.sum(p_all[:, :, 2] > 1.0 - epsilon, axis=0)  #/self.N_nodes
+        per_L = np.sum(p_all[:, :, 0] > 1.0 - epsilon, axis=0)[:, np.newaxis ].T
+        per_M = np.sum(p_all[:, :, 1] > 1.0 - epsilon, axis=0)[:, np.newaxis ].T
+        per_H = np.sum(p_all[:, :, 2] > 1.0 - epsilon, axis=0)[:, np.newaxis ].T
 
-        # np.set_printoptions(threshold=np.inf)
 
         statistics = {
             'p_all': p_all,
@@ -240,7 +233,15 @@ class bargain:
             'per_M': per_M,
             'per_H': per_H,
         }
-        return statistics
+
+        if self.statistics==None:
+            self.statistics = {}
+            for key in statistics:
+                self.statistics[key] = statistics[key]
+        else:
+            for key in statistics:
+                self.statistics[key] = np.append(self.statistics[key],statistics[key],axis=0)
+
 
     def _get_vertex_positions(self, data):
         assert (len(np.shape(data)) == 3)
@@ -284,7 +285,6 @@ class bargain:
         for level_key in level_keys:
             key_data = 'per_' + level_key
             data = self.statistics[key_data]
-            data = np.vstack(data)
 
             for l in range(self.N_tags):
                 self.ax_stats[k].plot(
@@ -297,8 +297,8 @@ class bargain:
                 )
         self.ax_stats[k].legend()
         self.ax_stats[k].set_xlabel('Epoch')
-        self.ax_stats[k].set_ylabel('Percentage of nodes with p>0.99')
-        fig_path = self.results_folder + '/percentage_of_nodes_P'
+        self.ax_stats[k].set_ylabel('Number of nodes with p>0.99')
+        fig_path = self.results_folder + '/number_of_nodes_P'
         plt.savefig(fig_path)
         plt.pause(0.005)
         plt.show(block=False)

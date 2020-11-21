@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 from games import bargain
 import graphs as gr
 import matplotlib.pyplot as plt
@@ -11,7 +10,7 @@ import pretty_errors
 
 n = 33
 Ns = 60
-N_epoch = 20
+N_epoch = 2000
 
 beta = np.linspace(3, 0, Ns)
 

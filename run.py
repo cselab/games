@@ -17,16 +17,16 @@ G = gr.lattice_von_neumann(n)
 # G = gr.path(n*n)
 # G = gr.off_lattice(n * n)
 
-game = bargain(G, beta=1., J0=[ 4, 1, 4 ], N_tags=1)
+game = bargain(G, beta=2., J0=[ 4, 1, 4 ], N_tags=1)
 
-game.plot_graph_init()
+# game.plot_graph_init()
 game.plot_statistics_init()
 
-game.plot_graph(node_size=node_size)
+# game.plot_graph(node_size=node_size)
 
-for k in range(10):
+for k in range(2):
     game.play(100)
-    game.plot_graph(node_size=node_size)
+    # game.plot_graph(node_size=node_size)
     game.plot_statistics()
 
 plt.show()
