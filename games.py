@@ -29,6 +29,7 @@ class bargain:
         G,
         beta=1.,
         gamma=0.1,
+        lamda=0.2,
         seed=None,
         J0=[ 4, 4, 4 ],
         payoff=None,
@@ -67,12 +68,12 @@ class bargain:
 
         if payoff == None:
             self.payoff = np.zeros((3, 3))
-            self.payoff[0] = [ 0.3, 0.3, 0.3 ]
+            p1 = 0.5-lamda
+            p2 = 0.5+lamda
+            self.payoff[0] = [ p1, p1, p1 ]
             self.payoff[1] = [ 0.5, 0.5, 0.0 ]
-            self.payoff[2] = [ 0.7, 0.0, 0.0 ]
+            self.payoff[2] = [ p2, 0.0, 0.0 ]
             self.gamma_payoff = self.gamma * self.payoff
-
-        self.N_per_epoch = np.ceil(self.N_nodes / 2).astype(int)
 
         self.nodes = list(self.G.nodes)
         self.neighbors = [list(self.G.neighbors(k)) for k in self.G.nodes]
@@ -101,8 +102,11 @@ class bargain:
     def _energy(self, x):
         return np.exp(self.beta * x)
 
-    def play(self, N_epochs=10):
+    def play(self, N_epochs=10, N_per_epoch=None):
         print(f'[games] Simulating {N_epochs} epochs...')
+
+        if N_per_epoch==None:
+            N_per_epoch = np.ceil(self.N_nodes / 2).astype(int)
 
         with tqdm(total=N_epochs,
                   desc='[games] Running for {:} epochs'.format(N_epochs),
@@ -111,10 +115,10 @@ class bargain:
             self._update_statistics()
 
             for e in range(N_epochs):
-                R = np.random.randint(0, self.N_nodes, size=self.N_per_epoch)
-                Q = np.random.uniform(low=0.0, high=1.0, size=(self.N_nodes, 2))
+                R = np.random.randint(0, self.N_nodes, size=N_per_epoch)
+                Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
 
-                for i in range(self.N_per_epoch):
+                for i in range(N_per_epoch):
                     node1 = self.nodes[R[i]]
                     if self.neighbors[R[i]] != []:
                         s = np.random.randint(0, self.G.degree(node1))
@@ -142,6 +146,7 @@ class bargain:
                     node1_data['P'][tag2] /= np.sum(node1_data['P'][tag2])
                     node2_data['P'][tag1] = self._energy(node2_data['J'][tag1])
                     node2_data['P'][tag1] /= np.sum(node2_data['P'][tag1])
+
                     self.iter += 1
 
                 self._update_statistics()
