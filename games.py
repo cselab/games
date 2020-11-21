@@ -51,25 +51,25 @@ class bargain:
         J0 = np.array(J0)
         self.nodes_with_tag = [[] for _ in range(self.N_tags)]
         for node in G:
-            this_node = G.nodes[node]
+            node_data = G.nodes[node]
 
-            if 'J' not in this_node.keys():
-                this_node['J'] = np.random.uniform(low=0, high=J0, size=(N_tags, 3)).astype('float64')
+            if 'J' not in node_data.keys():
+                node_data['J'] = np.random.uniform(low=0, high=J0, size=(N_tags, 3)).astype('float64')
 
-            this_node['P'] = self._energy(this_node['J'])
-            this_node['P'] /= np.sum(this_node['P'])
+            node_data['P'] = self._energy(node_data['J'])
+            node_data['P'] /= np.sum(node_data['P'])
 
-            if 'tag' not in this_node.keys():
+            if 'tag' not in node_data.keys():
                 tag = np.random.randint(0, self.N_tags)
-                this_node['tag'] = tag
-            self.nodes_with_tag[this_node['tag']].append(node)
+                node_data['tag'] = tag
+            self.nodes_with_tag[node_data['tag']].append(node)
 
-            this_node['last action'] = None
+            node_data['last action'] = None
 
         if payoff == None:
             self.payoff = np.zeros((3, 3))
-            p1 = 0.5-lamda
-            p2 = 0.5+lamda
+            p1 = 0.5 - lamda
+            p2 = 0.5 + lamda
             self.payoff[0] = [ p1, p1, p1 ]
             self.payoff[1] = [ 0.5, 0.5, 0.0 ]
             self.payoff[2] = [ p2, 0.0, 0.0 ]
@@ -105,7 +105,7 @@ class bargain:
     def play(self, N_epochs=10, N_per_epoch=None):
         print(f'[games] Simulating {N_epochs} epochs...')
 
-        if N_per_epoch==None:
+        if N_per_epoch == None:
             N_per_epoch = np.ceil(self.N_nodes / 2).astype(int)
 
         with tqdm(total=N_epochs,
@@ -155,28 +155,24 @@ class bargain:
         print('[games] Total iterations = {:}'.format(self.iter))
         print('[games] Average iterations per agent = {:.2f}'.format(self.iter / self.N_nodes))
 
-    def plot_graph_init(self, fig_size=(10, 10), position_function=None, *args):
-        print(f'[games] Initializing plotting graph:')
-        print(f'[games] Calculating nodes positions...')
+    def plot_graph(self, with_labels=False, fig_size=(10, 10), node_size=None, position_function=None):
 
-        self.fig_graph = []
-        self.ax_graph = []
-        for i in range(self.N_tags):
-            fig, ax = plt.subplots(figsize=fig_size)
-            self.fig_graph.append(fig)
-            self.ax_graph.append(ax)
+        if self.fig_graph == None:
+            print(f'[games] Initializing plotting graph:')
+            self.fig_graph = []
+            self.ax_graph = []
+            for i in range(self.N_tags):
+                fig, ax = plt.subplots(figsize=fig_size)
+                self.fig_graph.append(fig)
+                self.ax_graph.append(ax)
 
         if self.positions == None:
+            print(f'[games] Calculating nodes positions...')
             if position_function == None:
                 pos = nx.spring_layout(self.G, iterations=100)
                 self.positions = nx.kamada_kawai_layout(self.G, pos=pos)
             else:
                 self.positions = position_function(self.G, *args)
-
-    def plot_graph(self, with_labels=False, node_size=None, silent=False):
-
-        if self.positions == None:
-            sys.exit('Run plot_graph_init() before plot_graph()')
 
         if node_size == None:
             node_size = size_of_nodes(self.N_nodes)
@@ -226,10 +222,9 @@ class bargain:
 
         # find the percentage of nodes that pick a specific probability per tag
         epsilon = 0.01
-        per_L = np.sum(p_all[:, :, 0] > 1.0 - epsilon, axis=0)[:, np.newaxis ].T
-        per_M = np.sum(p_all[:, :, 1] > 1.0 - epsilon, axis=0)[:, np.newaxis ].T
-        per_H = np.sum(p_all[:, :, 2] > 1.0 - epsilon, axis=0)[:, np.newaxis ].T
-
+        per_L = np.sum(p_all[:, :, 0] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
+        per_M = np.sum(p_all[:, :, 1] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
+        per_H = np.sum(p_all[:, :, 2] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
 
         statistics = {
             'p_all': p_all,
@@ -239,14 +234,13 @@ class bargain:
             'per_H': per_H,
         }
 
-        if self.statistics==None:
+        if self.statistics == None:
             self.statistics = {}
             for key in statistics:
                 self.statistics[key] = statistics[key]
         else:
             for key in statistics:
-                self.statistics[key] = np.append(self.statistics[key],statistics[key],axis=0)
-
+                self.statistics[key] = np.append(self.statistics[key], statistics[key], axis=0)
 
     def _get_vertex_positions(self, data):
         assert (len(np.shape(data)) == 3)
@@ -259,20 +253,16 @@ class bargain:
         data_y = np.sqrt(3) * data[:, :, 2] / 2.0 / den
         return data_x, data_y
 
-    def plot_statistics_init(self, fig_size=(10, 10), *args):
-        print(f'[games] Initializing plotting statistics:')
-
-        self.N_stats = 1  # number of stats plots
-        self.fig_stats = []
-        self.ax_stats = []
-        for i in range(self.N_stats):
-            fig, ax = plt.subplots(figsize=fig_size)
-            self.fig_stats.append(fig)
-            self.ax_stats.append(ax)
-
-    def plot_statistics(self):
+    def plot_statistics(self, fig_size=(10, 10),):
         if self.fig_stats == None:
-            sys.exit('Run plot_statistics_init() before plot_statistics()')
+            print(f'[games] Initializing plotting statistics:')
+            self.N_stats = 1  # number of stats plots
+            self.fig_stats = []
+            self.ax_stats = []
+            for i in range(self.N_stats):
+                fig, ax = plt.subplots(figsize=fig_size)
+                self.fig_stats.append(fig)
+                self.ax_stats.append(ax)
 
         level_keys = [ 'L', 'M', 'H']
         level_colors = {

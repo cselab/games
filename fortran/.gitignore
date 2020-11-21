@@ -1,0 +1,13 @@
+__pycache__/
+fontconfig/
+*.swp
+
+*.png
+*.pdf
+
+test.py
+
+_results/
+_results*/
+a.out
+fractions-data
