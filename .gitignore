@@ -7,6 +7,8 @@ fontconfig/
 
 test.py
 
+phase_beta*.txt
+
 _results/
 _results*/
 /env

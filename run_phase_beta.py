@@ -8,12 +8,13 @@ import sys
 
 import pretty_errors
 
-n = 33
+n = 10
 Ns = 60
 
 beta = np.linspace(3, 0, Ns)
 
-G = gr.lattice_von_neumann(n)
+# G = gr.lattice_von_neumann(n)
+G = gr.off_lattice(n*n)
 
 N_nodes = G.number_of_nodes()
 N_tags = 1
@@ -27,7 +28,7 @@ for k in range(Ns):
 
     game = bargain(G, beta=beta[k], J0=[ 4, 4, 4 ], N_tags=N_tags)
 
-    game.play(N_epochs=10,N_per_epoch=100000)
+    game.play(N_epochs=10,N_per_epoch=100)
 
     game.plot_statistics()
 
@@ -48,5 +49,9 @@ for k in range(Ns):
     ax.set_ylabel('percentages of actions ')
     plt.pause(0.005)
     plt.show(block=False)
+
+for tag in range(N_tags):
+    name ='phase_beta_tag_' + str(tag) + '.txt'
+    np.savetxt(name, np.squeeze(LHM[tag,:,:]), delimiter=' ')
 
 plt.show()
