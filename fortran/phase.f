@@ -20,7 +20,7 @@ c     AB | DynamicLattice -nx 210 -ny 140 -z 1 3 -cmap mycol.map
       J02=4.0
       J03=4.0
       gam=0.2  ! inequity parameter
-      period=1000000 !nb iterations
+      period=10000000 !nb iterations
       OPEN (unit=13,file='fractions-data',status='unknown')
       mat(1,1)=0                ! payoff matrix
       mat(1,2)=0                !
@@ -41,7 +41,7 @@ c     AB | DynamicLattice -nx 210 -ny 140 -z 1 3 -cmap mycol.map
          enddo
       enddo
 cccccccccccccccccccccccccc
-      do ibeta=1,5  ! loop on beta decrease
+      do ibeta=1,60  ! loop on beta decrease
          beta=beta-0.05
          print *, beta
 cccccccccccfin init ccccccccccccccccccccccc

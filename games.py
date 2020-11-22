@@ -313,6 +313,7 @@ class bargain:
                     label=level_key + ' of tag ' + str(l),
                     color=level_colors[level_key],
                     marker=self.node_shapes[l],
+                    markersize=4,
                     linewidth=linewidth,
                 )
         self.ax_stats[k].legend()

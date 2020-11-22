@@ -10,7 +10,6 @@ import pretty_errors
 
 n = 33
 Ns = 60
-N_epoch = 2000
 
 beta = np.linspace(3, 0, Ns)
 
@@ -28,22 +27,22 @@ for k in range(Ns):
 
     game = bargain(G, beta=beta[k], J0=[ 4, 4, 4 ], N_tags=N_tags)
 
-    game.plot_statistics_init()
-
-    game.play(N_epoch)
+    game.play(N_epochs=10,N_per_epoch=100000)
 
     game.plot_statistics()
 
-    LHM[0, k, :] = game.statistics['per_L'][-1] / N_nodes
-    LHM[1, k, :] = game.statistics['per_M'][-1] / N_nodes
-    LHM[2, k, :] = game.statistics['per_H'][-1] / N_nodes
-
+    game.copy_data_to_graph()
     G = game.G
+
+    LHM[0, k, :] = np.sum( game.actions==0 ) / N_nodes
+    LHM[1, k, :] = np.sum( game.actions==1 ) / N_nodes
+    LHM[2, k, :] = np.sum( game.actions==2 ) / N_nodes
+
     plt.figure(fig.number)
     ax.clear()
-    ax.plot(beta, LHM[0, :, :], 'ro-', label='Low')
-    ax.plot(beta, LHM[1, :, :], 'go-', label='Med')
-    ax.plot(beta, LHM[2, :, :], 'bo-', label='Hig')
+    ax.plot(beta, LHM[0, :, :], 'ro-', label='Low', markersize=3)
+    ax.plot(beta, LHM[1, :, :], 'go-', label='Med', markersize=3)
+    ax.plot(beta, LHM[2, :, :], 'bo-', label='Hig', markersize=3)
 
     ax.set_xlabel('beta')
     ax.set_ylabel('percentages of actions ')
