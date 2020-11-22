@@ -8,7 +8,7 @@ import networkx as nx
 
 import pretty_errors
 
-n = 10
+n = 33
 node_size = 100
 
 G = gr.lattice_von_neumann(n)
@@ -21,9 +21,9 @@ game = bargain(G, beta=2., J0=[ 4, 1, 4 ], N_tags=1)
 
 # game.plot_graph(node_size=node_size)
 
-for k in range(5):
-    game.play(N_epochs=1, N_per_epoch=100)
+for k in range(1):
+    game.play(N_epochs=10,N_per_epoch=100000)
     # game.plot_graph(node_size=node_size)
-    game.plot_statistics()
+    # game.plot_statistics()
 
 plt.show()

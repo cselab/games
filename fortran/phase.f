@@ -41,7 +41,7 @@ c     AB | DynamicLattice -nx 210 -ny 140 -z 1 3 -cmap mycol.map
          enddo
       enddo
 cccccccccccccccccccccccccc
-      do ibeta=1,60  ! loop on beta decrease
+      do ibeta=1,5  ! loop on beta decrease
          beta=beta-0.05
          print *, beta
 cccccccccccfin init ccccccccccccccccccccccc

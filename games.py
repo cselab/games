@@ -4,15 +4,17 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import sys
-
+from numba import jit
 import os
 from tqdm import tqdm
 
 
+@jit(nopython=True)
 def random_choice(p, r):
     return np.argmax(np.cumsum(p) > r)
 
 
+@jit(nopython=True)
 def size_of_nodes(x):
     x = np.sqrt(x)
     a = 9.7981
@@ -20,6 +22,51 @@ def size_of_nodes(x):
     c = 7.1286
     d = -0.0781
     return np.exp(b*x + a) + np.exp(d*x + c)
+
+
+@jit(nopython=True)
+def _probalility_of_action(x, beta):
+    p = np.exp(beta * x)
+    p /= np.sum(p)
+    return p
+
+
+# @jit
+def iterate_graph( N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors, payoff, beta, gamma):
+    iter = 0
+
+    R = np.random.randint(0, N_nodes, size=N_per_epoch)
+    Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
+
+    for i in range(N_per_epoch):
+        k = R[i]
+        node1 = nodes[k]
+        if neighbors[k] != []:
+            s = np.random.randint(0, len(neighbors[k]))
+            node2 = neighbors[k][s]
+        else:
+            node2 = np.random.randint(0, N_nodes)
+
+        tag1 = tags[node1]
+        tag2 = tags[node2]
+
+        action1 = random_choice(P[node1][tag2], Q[i, 0])
+        action2 = random_choice(P[node2][tag1], Q[i, 1])
+
+        actions[node1] = action1
+        actions[node2] = action2
+
+        J[node1][tag2] *= (1.0 - gamma)
+        J[node2][tag1] *= (1.0 - gamma)
+        J[node1][tag2][action1] += payoff[action1][action2]
+        J[node2][tag1][action2] += payoff[action2][action1]
+
+        P[node1][tag2] = _probalility_of_action(J[node1][tag2], beta)
+        P[node2][tag1] = _probalility_of_action(J[node2][tag1], beta)
+
+        iter += 1
+
+    return iter
 
 
 class bargain:
@@ -40,6 +87,8 @@ class bargain:
         self.G = G
         self.beta = beta
         self.gamma = gamma
+        self.payoff = payoff
+        self.lamda = lamda
         self.N_tags = N_tags
         self.results_folder = folder
         np.random.seed(seed)
@@ -48,41 +97,14 @@ class bargain:
 
         self.positions = None
 
-        J0 = np.array(J0)
-        self.nodes_with_tag = [[] for _ in range(self.N_tags)]
-        for node in G:
-            node_data = G.nodes[node]
+        self.J0 = np.array(J0)
 
-            if 'J' not in node_data.keys():
-                node_data['J'] = np.random.uniform(low=0, high=J0, size=(N_tags, 3)).astype('float64')
-
-            node_data['P'] = self._energy(node_data['J'])
-            node_data['P'] /= np.sum(node_data['P'])
-
-            if 'tag' not in node_data.keys():
-                tag = np.random.randint(0, self.N_tags)
-                node_data['tag'] = tag
-            self.nodes_with_tag[node_data['tag']].append(node)
-
-            node_data['last action'] = None
-
-        if payoff == None:
-            self.payoff = np.zeros((3, 3))
-            p1 = 0.5 - lamda
-            p2 = 0.5 + lamda
-            self.payoff[0] = [ p1, p1, p1 ]
-            self.payoff[1] = [ 0.5, 0.5, 0.0 ]
-            self.payoff[2] = [ p2, 0.0, 0.0 ]
-            self.gamma_payoff = self.gamma * self.payoff
-
-        self.nodes = list(self.G.nodes)
-        self.neighbors = [list(self.G.neighbors(k)) for k in self.G.nodes]
+        self._initialize_game()
 
         self.node_shapes = 'so^>v<dph8'
 
         self.fig_graph = None
         self.ax_graph = None
-
         self.fig_stats = None
         self.ax_stats = None
 
@@ -90,6 +112,8 @@ class bargain:
 
         self.statistics = None
         self.iter = 0
+
+        self._update_statistics()
 
     def __del__(self):
         if self.fig_stats != None:
@@ -99,8 +123,51 @@ class bargain:
             for fig in self.fig_graph:
                 plt.close(fig)
 
-    def _energy(self, x):
-        return np.exp(self.beta * x)
+    def _initialize_game(self):
+        print('[games] Initializing the game...')
+        self.J = np.zeros((self.N_nodes, self.N_tags, 3))
+        self.P = np.zeros((self.N_nodes, self.N_tags, 3))
+        self.tags = np.zeros((self.N_nodes,), dtype=int)
+        self.actions = np.zeros((self.N_nodes,), dtype=int)
+        self.nodes_with_tag = [[] for _ in range(self.N_tags)]
+
+        # Graph has already 'J' and 'tag' data
+        if (('has data' in self.G.graph.keys() and self.G.graph['has data'] != True)
+                or 'has data' not in self.G.graph.keys()):
+            for node in self.G:
+                node_data = self.G.nodes[node]
+                node_data['J'] = np.random.uniform(low=0, high=self.J0, size=(self.N_tags, 3)).astype('float64')
+                node_data['tag'] = np.random.randint(0, self.N_tags)
+            self.G.graph['has data'] = True
+
+        for node in self.G:
+            node_data = self.G.nodes[node]
+            self.J[node] = node_data['J']
+
+            self.P[node] = _probalility_of_action(self.J[node], self.beta)
+            node_data['P'] = self.P[node]
+
+            self.tags[node] = node_data['tag']
+            self.nodes_with_tag[node_data['tag']].append(node)
+            node_data['last action'] = None
+
+        if self.payoff == None:
+            self.payoff = np.zeros((3, 3))
+            p1 = 0.5 - self.lamda
+            p2 = 0.5 + self.lamda
+            self.payoff[0] = [ p1, p1, p1 ]
+            self.payoff[1] = [ 0.5, 0.5, 0.0 ]
+            self.payoff[2] = [ p2, 0.0, 0.0 ]
+            self.gamma_payoff = self.gamma * self.payoff
+
+        self.nodes = list(self.G.nodes)
+        self.neighbors = [list(self.G.neighbors(k)) for k in self.G.nodes]
+
+    def copy_data_to_graph(self):
+        for node in self.G:
+            node_data = self.G.nodes[node]
+            node_data['J'] = self.J[node]
+            node_data['P'] = self.P[node]
 
     def play(self, N_epochs=10, N_per_epoch=None):
         print(f'[games] Simulating {N_epochs} epochs...')
@@ -111,44 +178,9 @@ class bargain:
         with tqdm(total=N_epochs,
                   desc='[games] Running for {:} epochs'.format(N_epochs),
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
-
-            self._update_statistics()
-
             for e in range(N_epochs):
-                R = np.random.randint(0, self.N_nodes, size=N_per_epoch)
-                Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
-
-                for i in range(N_per_epoch):
-                    node1 = self.nodes[R[i]]
-                    if self.neighbors[R[i]] != []:
-                        s = np.random.randint(0, self.G.degree(node1))
-                        node2 = self.neighbors[R[i]][s]
-                    else:
-                        node2 = np.random.randint(0, self.N_nodes)
-
-                    node1_data = self.G.nodes[node1]
-                    node2_data = self.G.nodes[node2]
-
-                    tag1 = node1_data['tag']
-                    tag2 = node2_data['tag']
-                    action1 = random_choice(node1_data['P'][tag2], Q[i, 0])
-                    action2 = random_choice(node2_data['P'][tag1], Q[i, 1])
-
-                    node1_data['last action'] = action1
-                    node2_data['last action'] = action2
-
-                    node1_data['J'][tag2] *= (1.0 - self.gamma)
-                    node2_data['J'][tag1] *= (1.0 - self.gamma)
-                    node1_data['J'][tag2][action1] += self.payoff[action1][action2]
-                    node2_data['J'][tag1][action2] += self.payoff[action2][action1]
-
-                    node1_data['P'][tag2] = self._energy(node1_data['J'][tag2])
-                    node1_data['P'][tag2] /= np.sum(node1_data['P'][tag2])
-                    node2_data['P'][tag1] = self._energy(node2_data['J'][tag1])
-                    node2_data['P'][tag1] /= np.sum(node2_data['P'][tag1])
-
-                    self.iter += 1
-
+                self.iter = iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
+                                  self.nodes, self.neighbors, self.payoff, self.beta, self.gamma)
                 self._update_statistics()
                 pbar.update(1)
 
@@ -158,7 +190,7 @@ class bargain:
     def plot_graph(self, with_labels=False, fig_size=(10, 10), node_size=None, position_function=None):
 
         if self.fig_graph == None:
-            print(f'[games] Initializing plotting graph:')
+            print(f'[games] Initializing plotting graph...')
             self.fig_graph = []
             self.ax_graph = []
             for i in range(self.N_tags):
@@ -178,20 +210,20 @@ class bargain:
             node_size = size_of_nodes(self.N_nodes)
 
         for k in range(self.N_tags):
-
-            node_color = [list(self.G.nodes[node]['P'][k]) for node in self.G]
-            node_color = np.vstack(node_color)
-            node_color = node_color / np.amax(node_color)
+            node_color = self.P
 
             plt.figure(self.fig_graph[k].number)
             self.ax_graph[k].clear()
+
+            # print(node_color[self.nodes_with_tag[0]].shape)
+            # sys.exit()
 
             for l in range(self.N_tags):
                 nx.draw_networkx_nodes(self.G,
                                        ax=self.ax_graph[k],
                                        pos=self.positions,
                                        node_size=node_size,
-                                       node_color=node_color[self.nodes_with_tag[l]],
+                                       node_color=np.squeeze(node_color[self.nodes_with_tag[l]]),
                                        node_shape=self.node_shapes[l],
                                        nodelist=self.nodes_with_tag[l])
 
@@ -213,34 +245,27 @@ class bargain:
             plt.show(block=False)
 
     def _update_statistics(self):
-        p_all = np.zeros((self.N_nodes, self.N_tags, 3))
-        j_all = np.zeros((self.N_nodes, self.N_tags, 3))
-        for i in range(self.N_nodes):
-            node_data = self.G.nodes[i]
-            p_all[i] = node_data['P']
-            j_all[i] = node_data['J']
+        # initialize the statistics dictionary, only once
+        if self.statistics == None:
+            self.statistics = {}
+            self.statistics['p_all'] = np.empty((0, self.N_tags,3))
+            self.statistics['j_all'] = np.empty((0, self.N_tags,3))
+            self.statistics['per_L'] = np.empty((0, self.N_tags))
+            self.statistics['per_M'] = np.empty((0, self.N_tags))
+            self.statistics['per_H'] = np.empty((0, self.N_tags))
 
         # find the percentage of nodes that pick a specific probability per tag
         epsilon = 0.01
-        per_L = np.sum(p_all[:, :, 0] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
-        per_M = np.sum(p_all[:, :, 1] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
-        per_H = np.sum(p_all[:, :, 2] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
+        per_L = np.sum(self.P[:, :, 0] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
+        per_M = np.sum(self.P[:, :, 1] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
+        per_H = np.sum(self.P[:, :, 2] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
 
-        statistics = {
-            'p_all': p_all,
-            'j_all': j_all,
-            'per_L': per_L,
-            'per_M': per_M,
-            'per_H': per_H,
-        }
-
-        if self.statistics == None:
-            self.statistics = {}
-            for key in statistics:
-                self.statistics[key] = statistics[key]
-        else:
-            for key in statistics:
-                self.statistics[key] = np.append(self.statistics[key], statistics[key], axis=0)
+        # append statistics to the total statistics dictionary
+        self.statistics['p_all'] = np.append(self.statistics['p_all'], self.P, axis=0)
+        self.statistics['j_all'] = np.append(self.statistics['j_all'], self.J, axis=0)
+        self.statistics['per_L'] = np.append(self.statistics['per_L'], per_L, axis=0)
+        self.statistics['per_M'] = np.append(self.statistics['per_M'], per_M, axis=0)
+        self.statistics['per_H'] = np.append(self.statistics['per_H'], per_H, axis=0)
 
     def _get_vertex_positions(self, data):
         assert (len(np.shape(data)) == 3)
@@ -253,13 +278,13 @@ class bargain:
         data_y = np.sqrt(3) * data[:, :, 2] / 2.0 / den
         return data_x, data_y
 
-    def plot_statistics(self, fig_size=(10, 10),):
+    def plot_statistics(self, fig_size=(10, 10)):
         if self.fig_stats == None:
             print(f'[games] Initializing plotting statistics:')
-            self.N_stats = 1  # number of stats plots
+            self.N_plot_stats = 1  # number of stats plots
             self.fig_stats = []
             self.ax_stats = []
-            for i in range(self.N_stats):
+            for i in range(self.N_plot_stats):
                 fig, ax = plt.subplots(figsize=fig_size)
                 self.fig_stats.append(fig)
                 self.ax_stats.append(ax)
