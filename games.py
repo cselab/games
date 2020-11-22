@@ -31,19 +31,20 @@ def _probalility_of_action(x, beta):
     return p
 
 
-# @jit
-def iterate_graph( N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors, payoff, beta, gamma):
-    iter = 0
 
-    R = np.random.randint(0, N_nodes, size=N_per_epoch)
-    Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
+@jit
+def _iterate_graph( R, Q, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff, beta, gamma):
+    iter = 0
 
     for i in range(N_per_epoch):
         k = R[i]
         node1 = nodes[k]
-        if neighbors[k] != []:
-            s = np.random.randint(0, len(neighbors[k]))
-            node2 = neighbors[k][s]
+
+        begin = neighbors_offset[k]
+        end = neighbors_offset[k + 1]
+        if begin != end:
+            s = np.random.randint(0, end - begin)
+            node2 = neighbors_flat[begin + s]
         else:
             node2 = np.random.randint(0, N_nodes)
 
@@ -67,6 +68,13 @@ def iterate_graph( N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors, 
         iter += 1
 
     return iter
+
+def iterate_graph( N_per_epoch, N_nodes, *args, **kwargs ):
+    R = np.random.randint(0, N_nodes, size=N_per_epoch)
+    Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
+
+    return _iterate_graph(R, Q, N_per_epoch, N_nodes, *args, **kwargs)
+
 
 
 class bargain:
@@ -160,8 +168,16 @@ class bargain:
             self.payoff[2] = [ p2, 0.0, 0.0 ]
             self.gamma_payoff = self.gamma * self.payoff
 
-        self.nodes = list(self.G.nodes)
+        self.nodes = np.array(self.G.nodes)
         self.neighbors = [list(self.G.neighbors(k)) for k in self.G.nodes]
+        total_neighbors = sum(len(l) for l in self.neighbors)
+        self.neighbors_flat = np.zeros((total_neighbors, ), dtype=np.int32)
+        self.neighbors_offsets = np.zeros((len(self.G.nodes) + 1, ), dtype=np.int32)
+        offset = 0
+        for i, l in enumerate(self.neighbors):
+            self.neighbors_flat[offset : offset + len(l)] = np.array(l)
+            self.neighbors_offsets[i + 1] = offset + len(l)
+            offset += len(l)
 
     def copy_data_to_graph(self):
         for node in self.G:
@@ -180,7 +196,8 @@ class bargain:
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
             for e in range(N_epochs):
                 self.iter = iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
-                                  self.nodes, self.neighbors, self.payoff, self.beta, self.gamma)
+                                  self.nodes, self.neighbors_flat, self.neighbors_offsets,
+                                  self.payoff, self.beta, self.gamma)
                 self._update_statistics()
                 pbar.update(1)
 
