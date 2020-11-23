@@ -10,17 +10,23 @@ import pretty_errors
 
 n = 33
 Ns = 60
-
-beta = np.linspace(3, 0, Ns)
-
-
-
+beta0 = 0.
+beta1 = 3.
+N_tags = 1
+J0 = [ 4, 4, 4 ]
 G = gr.lattice_von_neumann(n)
-# G = gr.off_lattice(n*n)
+
+
+n = 33
+Ns = 60
+beta0 = 0.
+beta1 = 3.
+N_tags = 1
+J0 = [ 1, 10, 1 ]
+G = gr.off_lattice(n*n)beta = np.linspace(beta1, beta0, Ns)
+
 
 N_nodes = G.number_of_nodes()
-N_tags = 1
-
 LHM = np.zeros((3, Ns, N_tags))
 
 fig, ax = plt.subplots()
@@ -28,7 +34,7 @@ fig, ax = plt.subplots()
 for k in range(Ns):
     print(f'Running {k} out of {Ns} betas...')
 
-    game = bargain(G, beta=beta[k], J0=[ 4, 4, 4 ], N_tags=N_tags)
+    game = bargain(G, beta=beta[k], J0=J0, N_tags=N_tags)
 
     if k == 0:
         N_per_epoch = int(1e6)
