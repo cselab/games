@@ -39,13 +39,13 @@ pts  = traj.sample(dt=0.1)
 # plt.plot(pts['t'], pts['y3'])
 # plt.show() 
 # sys.exit()
-
+# 
 
 # Prepare the system to start close to a steady state
 ode.set(pars = {'beta': 2} )            # Lower bound of the control parameter 'beta'
 ode.set(ics =  {'y1':pts['y1'][-1],
                 'y2':pts['y2'][-1],
-                # 'y3':pts['y3'][-1], } ) # Close to one of the steady states
+                'y3':pts['y3'][-1], } ) # Close to one of the steady states
 
 print('Initial Condition: ',pts['y1'][-1], pts['y2'][-1], pts['y3'][-1])
 

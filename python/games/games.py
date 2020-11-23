@@ -31,9 +31,9 @@ def _probalility_of_action(x, beta):
     return p
 
 
+
 @jit
-def _iterate_graph(R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff,
-                   beta, gamma):
+def _iterate_graph( R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff, beta, gamma):
     iter = 0
 
     for i in range(N_per_epoch):
@@ -43,10 +43,10 @@ def _iterate_graph(R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, ne
         begin = neighbors_offset[k]
         end = neighbors_offset[k + 1]
         if begin != end:
-            s = int(S[i] * (end-begin))
+            s = int( S[i] * (end - begin) )
             node2 = neighbors_flat[begin + s]
         else:
-            node2 = int(S[i] * N_nodes)
+            node2 = int( S[i] * N_nodes )
 
         tag1 = tags[node1]
         tag2 = tags[node2]
@@ -69,13 +69,13 @@ def _iterate_graph(R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, ne
 
     return iter
 
-
-def iterate_graph(N_per_epoch, N_nodes, *args, **kwargs):
+def iterate_graph( N_per_epoch, N_nodes, *args, **kwargs ):
     R = np.random.randint(0, N_nodes, size=N_per_epoch)
     Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
     S = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, ))
 
     return _iterate_graph(R, Q, S, N_per_epoch, N_nodes, *args, **kwargs)
+
 
 
 class bargain:
@@ -136,8 +136,8 @@ class bargain:
         print('[games] Initializing the game...')
         self.J = np.zeros((self.N_nodes, self.N_tags, 3))
         self.P = np.zeros((self.N_nodes, self.N_tags, 3))
-        self.tags = np.zeros((self.N_nodes, ), dtype=int)
-        self.actions = np.zeros((self.N_nodes, ), dtype=int)
+        self.tags = np.zeros((self.N_nodes,), dtype=int)
+        self.actions = np.zeros((self.N_nodes,), dtype=int)
         self.nodes_with_tag = [[] for _ in range(self.N_tags)]
 
         # Graph has already 'J' and 'tag' data
@@ -176,7 +176,7 @@ class bargain:
         self.neighbors_offsets = np.zeros((len(self.G.nodes) + 1, ), dtype=np.int32)
         offset = 0
         for i, l in enumerate(self.neighbors):
-            self.neighbors_flat[offset:offset + len(l)] = np.array(l)
+            self.neighbors_flat[offset : offset + len(l)] = np.array(l)
             self.neighbors_offsets[i + 1] = offset + len(l)
             offset += len(l)
 
@@ -197,8 +197,8 @@ class bargain:
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
             for e in range(N_epochs):
                 self.iter = iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
-                                          self.nodes, self.neighbors_flat, self.neighbors_offsets, self.payoff,
-                                          self.beta, self.gamma)
+                                  self.nodes, self.neighbors_flat, self.neighbors_offsets,
+                                  self.payoff, self.beta, self.gamma)
                 self._update_statistics()
                 pbar.update(1)
 
@@ -233,6 +233,9 @@ class bargain:
             plt.figure(self.fig_graph[k].number)
             self.ax_graph[k].clear()
 
+            # print(node_color[self.nodes_with_tag[0]].shape)
+            # sys.exit()
+
             for l in range(self.N_tags):
                 nx.draw_networkx_nodes(self.G,
                                        ax=self.ax_graph[k],
@@ -248,7 +251,7 @@ class bargain:
 
             plt.text(0,
                      1,
-                     f'against tag = {k}',
+                     f'tag = {k}',
                      horizontalalignment='center',
                      verticalalignment='center',
                      transform=self.ax_graph[k].transAxes)
@@ -263,11 +266,13 @@ class bargain:
         # initialize the statistics dictionary, only once
         if self.statistics == None:
             self.statistics = {}
-            self.statistics['p_all'] = np.empty((0, self.N_tags, 3))
-            self.statistics['j_all'] = np.empty((0, self.N_tags, 3))
+            self.statistics['p_all'] = np.empty((0, self.N_nodes, self.N_tags, 3))
+            self.statistics['j_all'] = np.empty((0, self.N_nodes, self.N_tags, 3))
+
             self.statistics['per_L'] = np.empty((0, self.N_tags))
             self.statistics['per_M'] = np.empty((0, self.N_tags))
             self.statistics['per_H'] = np.empty((0, self.N_tags))
+
 
         # find the percentage of nodes that pick a specific probability per tag
         epsilon = 0.01
@@ -275,9 +280,9 @@ class bargain:
         per_M = np.sum(self.P[:, :, 1] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
         per_H = np.sum(self.P[:, :, 2] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
 
-        # append statistics to the total statistics dictionary
-        self.statistics['p_all'] = np.append(self.statistics['p_all'], self.P, axis=0)
-        self.statistics['j_all'] = np.append(self.statistics['j_all'], self.J, axis=0)
+        self.statistics['p_all'] = np.append(self.statistics['p_all'], self.P[np.newaxis], axis=0)
+        self.statistics['j_all'] = np.append(self.statistics['j_all'], self.J[np.newaxis], axis=0)
+
         self.statistics['per_L'] = np.append(self.statistics['per_L'], per_L, axis=0)
         self.statistics['per_M'] = np.append(self.statistics['per_M'], per_M, axis=0)
         self.statistics['per_H'] = np.append(self.statistics['per_H'], per_H, axis=0)
@@ -297,6 +302,7 @@ class bargain:
         if self.fig_stats == None:
             print(f'[games] Initializing plotting statistics:')
             self.N_plot_stats = 1  # number of stats plots
+            self.N_plot_stats += self.N_tags
             self.fig_stats = []
             self.ax_stats = []
             for i in range(self.N_plot_stats):
@@ -312,7 +318,9 @@ class bargain:
         }
         linewidth = 2
 
+        # ------------------------------------
         # Plot the percentages of each action
+        # ------------------------------------
         k = 0
         plt.figure(self.fig_stats[k].number)
         self.ax_stats[k].clear()
@@ -340,164 +348,82 @@ class bargain:
         plt.show(block=False)
 
 
-        # ------------------------------------------------
-        # Plot the simplex in J 
-        # Plotting the intra-type equity (Tag versus own tag)
-        # ------------------------------------------------
+        # ------------------------------------
+        # Plot the simplex in J
+        # ------------------------------------
         k = 1
         plt.figure(self.fig_stats[k].number)
         self.ax_stats[k].clear()
         self._add_triangle(self.ax_stats[k])
+
         # Last element of p_all (in time)
         data = self.statistics['j_all'][-1]
         p_x, p_y = self._get_vertex_positions(data)
-
+        print(np.shape(p_x))
+        print(np.shape(p_y))
         for l in range(self.N_tags):
-            tag_own = l
-            tag_oponent = l
-            idx_tag = np.where(self.tags == tag_own)[0]
-            p_x_tag = p_x[idx_tag, tag_oponent]
-            p_y_tag = p_y[idx_tag, tag_oponent]
-            self.ax_stats[k].plot(
+            p_x_tag = p_x[:,l]
+            p_y_tag = p_y[:,l]
+            self.ax_stats[k].scatter(
                     p_x_tag,
                     p_y_tag,
-                    markersize=6,
-                    linewidth=0,
+                    s=20,
+                    linewidths=linewidth,
+                    # color=level_colors[level_key],
                     marker=self.node_shapes[l],
-                    label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
                     )
-        self.ax_stats[k].legend()
-        fig_path = self.results_folder + '/simplex_J_intra_within'
+
+        fig_path = self.results_folder + '/simplex_J'
         plt.savefig(fig_path)
         plt.pause(0.005)
         plt.show(block=False)
 
+        # # ------------------------------------
+        # # Plot the simplex in P
+        # # ------------------------------------
+        # k = 2
+        # plt.figure(self.fig_stats[k].number)
+        # self.ax_stats[k].clear()
+        # self._add_triangle(self.ax_stats[k])
 
-        # Only plotting the inter-type equity (between Tags)
-        # when there are more than 1 tag.
-        # Function for N_tags > 2 not implemented.
-        if self.N_tags == 2:
-            # ------------------------------------------------
-            # Plot the simplex in J 
-            # Plotting the inter-type equity (between Tags)
-            # ------------------------------------------------
-            k = 2
-            plt.figure(self.fig_stats[k].number)
-            self.ax_stats[k].clear()
-            self._add_triangle(self.ax_stats[k])
-            # Last element of p_all (in time)
-            data = self.statistics['j_all'][-1]
-            p_x, p_y = self._get_vertex_positions(data)
+        # # Last element of p_all (in time)
+        # data = self.statistics['p_all'][-1]
+        # p_x, p_y = self._get_vertex_positions(data)
+        # print(np.shape(p_x))
+        # print(np.shape(p_y))
+        # for l in range(self.N_tags):
+        #     p_x_tag = p_x[:,l]
+        #     p_y_tag = p_y[:,l]
+        #     self.ax_stats[k].scatter(
+        #             p_x_tag,
+        #             p_y_tag,
+        #             s=20,
+        #             linewidths=linewidth,
+        #             # color=level_colors[level_key],
+        #             marker=self.node_shapes[l],
+        #             )
 
-            for l in range(self.N_tags):
-                tag_own = l
-                tag_oponents = set(range(self.N_tags))
-                tag_oponents = tag_oponents.difference(set([l]))
-                assert(len(tag_oponents)==1)
-                for tag_oponent in tag_oponents:
-                    idx_tag = np.where(self.tags == tag_own)[0]
-                    p_x_tag = p_x[idx_tag, tag_oponent]
-                    p_y_tag = p_y[idx_tag, tag_oponent]
-                    self.ax_stats[k].plot(
-                            p_x_tag,
-                            p_y_tag,
-                            markersize=6,
-                            linewidth=0,
-                            marker=self.node_shapes[l],
-                            label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
-                            )
-            self.ax_stats[k].legend()
-            fig_path = self.results_folder + '/simplex_J_inter_between'
-            plt.savefig(fig_path)
-            plt.pause(0.005)
-            plt.show(block=False)
-
-
-        #
-        # plot_every = 1
-        #
-        # p = np.array(self.statistics['p_all'])
-        # p_x, p_y = self._get_vertex_positions(p)
-        # fig, ax = plt.subplots(figsize=fig_size)
         # fig_path = self.results_folder + '/simplex_P'
-        # for particle in range(np.shape(p_x)[1]):
-        #     x = p_x[::plot_every, particle]
-        #     y = p_y[::plot_every, particle]
-        #     ax.plot(x, y, linewidth=linewidth)
-        # plt.axis('off')
         # plt.savefig(fig_path)
-        # plt.close()
-        #
-        # j = np.array(self.statistics['j_all'])
-        # j_x, j_y = self._get_vertex_positions(j)
-        # fig, ax = plt.subplots(figsize=fig_size)
-        # fig_path = self.results_folder + '/simplex_J'
-        # for particle in range(np.shape(p_x)[1]):
-        #     x = j_x[::plot_every, particle]
-        #     y = j_y[::plot_every, particle]
-        #     ax.plot(x, y, linewidth=linewidth)
-        # plt.axis('off')
-        # plt.savefig(fig_path)
-        # plt.close()
-        #
-        # fig, ax = plt.subplots(figsize=fig_size)
-        # fig_path = self.results_folder + '/statistics_P'
-        # for level_key in level_keys:
-        #     key_data = 'p_' + level_key
-        #     data = self.statistics[key_data]
-        #     ax.plot(
-        #         np.arange(len(data)),
-        #         data,
-        #         label=level_key,
-        #         color=level_colors[level_key],
-        #         linewidth=linewidth,
-        #     )
-        # ax.set_xlabel('Epoch')
-        # ax.set_ylabel('Average P_i')
-        # ax.legend()
-        # plt.savefig(fig_path)
-        # plt.close()
-        #
-        # fig, ax = plt.subplots(figsize=fig_size)
-        # fig_path = self.results_folder + '/statistics_J'
-        # for level_key in level_keys:
-        #     key_data = 'j_' + level_key
-        #     data = self.statistics[key_data]
-        #     ax.plot(
-        #         np.arange(len(data)),
-        #         data,
-        #         label=level_key,
-        #         color=level_colors[level_key],
-        #         linewidth=linewidth,
-        #     )
-        # ax.set_xlabel('Epoch')
-        # ax.set_ylabel('Average J_i')
-        # ax.legend()
-        # plt.savefig(fig_path)
-        # plt.close()
-        #
-        # # Plotting attractors in the J and P space:
-        # for level_keys in [
-        #     [ 'j_L', 'j_M'],
-        #     [ 'j_L', 'j_H'],
-        #     [ 'j_M', 'j_H'],
-        #     [ 'p_L', 'p_M'],
-        #     [ 'p_L', 'p_H'],
-        #     [ 'p_M', 'p_H'],
-        # ]:
-        #     key1, key2 = level_keys
-        #
-        #     fig, ax = plt.subplots(figsize=fig_size)
-        #     fig_path = self.results_folder + '/statistics_{:}-{:}'.format(key1, key2)
-        #     data1 = self.statistics[key1]
-        #     data2 = self.statistics[key2]
-        #     ax.plot(
-        #         data1,
-        #         data2,
-        #         color='tab:blue',
-        #         linewidth=linewidth,
-        #     )
-        #     ax.set_xlabel(key1)
-        #     ax.set_ylabel(key2)
-        #     plt.savefig(fig_path)
-        #     plt.close()
+        # plt.pause(0.005)
+        # plt.show(block=False)
+
+    def _add_triangle(self, ax):
+        temp = np.sin(60.*np.pi/180.)
+        edges = [[0,0], [0.5, temp], [1, 0]]
+        ax.add_patch(plt.Polygon(edges, color="k", fill=False, linewidth=4, alpha=0.8))
+        ax.set_xlim([-0.1,1.1])
+        ax.set_ylim([-0.1,1.1])
+        margin=0.05
+        ax.text(-0.02, 0+margin, "H", fontsize=16, fontweight='bold')
+        ax.text(1, 0+margin, "M", fontsize=16, fontweight='bold')
+        ax.text(0.5, temp+margin, "L", fontsize=16, fontweight='bold')
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        ax.axis("off")
+
+
+
+
+
