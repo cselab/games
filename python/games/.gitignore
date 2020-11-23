@@ -1,0 +1,16 @@
+__pycache__/
+fontconfig/
+*.swp
+
+*.png
+*.pdf
+
+test.py
+
+phase_beta*.txt
+
+_results/
+_results*/
+/env
+
+*.eps

@@ -41,6 +41,3 @@ game.plot_graph()
 # game.plot_graph(node_size=node_size)
 
 plt.show()
-
-
-
