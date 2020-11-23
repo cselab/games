@@ -21,7 +21,8 @@ Ns = 60
 beta0 = 0.
 beta1 = 2.
 N_tags = 1
-J0 = [ 1, 10, 1 ]
+# J0 = [ 1, 10, 1 ]
+J0 = [ 6, 0, 3 ]
 G = gr.off_lattice(n * n)
 
 beta = np.linspace(beta1, beta0, Ns)
