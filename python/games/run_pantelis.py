@@ -13,6 +13,8 @@ beta = 2.0
 # beta = 40.0
 gamma = 0.1
 
+N_tags = 2
+
 # J0 = [ 1, 4, 1 ]
 # J0 = [ 4, 1, 4 ]
 J0 = [ 4, 4, 4 ]
@@ -25,10 +27,16 @@ if lattice == "off_lattice":
 elif lattice == "lattice_von_neumann":
     G = gr.lattice_von_neumann(n)
 
-run_name = "_results_{:}_{:}_{:}_{:}_{:}".format(n, beta, gamma, J0, lattice)
+run_name = "_results_{:}_{:}_{:}_{:}_{:}_Ν{:}".format(n, beta, gamma, J0, lattice, N_tags)
 
-game = bargain(G, beta=beta, gamma=gamma, J0=J0, folder=run_name)
+game = bargain(G, beta=beta, gamma=gamma, J0=J0, folder=run_name, N_tags=N_tags)
 
-num_epochs = 200
-game.play(num_epochs)
-game.plot_statistics()
+for k in range(100):
+    game.play(N_epochs=10)
+    # game.plot_graph(node_size=node_size)
+    game.plot_statistics()
+
+plt.show()
+
+
+
