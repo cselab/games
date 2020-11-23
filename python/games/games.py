@@ -199,9 +199,10 @@ class bargain:
                   desc='[games] Running for {:} epochs'.format(N_epochs),
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
             for e in range(N_epochs):
-                self.iter = iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
+                iter_ = iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
                                           self.nodes, self.neighbors_flat, self.neighbors_offsets, self.payoff,
                                           self.beta, self.gamma)
+                self.iter += iter_
                 self._update_statistics()
                 pbar.update(1)
 
