@@ -348,65 +348,78 @@ class bargain:
         plt.show(block=False)
 
 
-        # ------------------------------------
-        # Plot the simplex in J
-        # ------------------------------------
+        # ------------------------------------------------
+        # Plot the simplex in J 
+        # Plotting the intra-type equity (Tag versus own tag)
+        # ------------------------------------------------
         k = 1
         plt.figure(self.fig_stats[k].number)
         self.ax_stats[k].clear()
         self._add_triangle(self.ax_stats[k])
-
         # Last element of p_all (in time)
         data = self.statistics['j_all'][-1]
         p_x, p_y = self._get_vertex_positions(data)
-        print(np.shape(p_x))
-        print(np.shape(p_y))
+
         for l in range(self.N_tags):
-            p_x_tag = p_x[:,l]
-            p_y_tag = p_y[:,l]
-            self.ax_stats[k].scatter(
+            tag_own = l
+            tag_oponent = l
+            idx_tag = np.where(self.tags == tag_own)[0]
+            p_x_tag = p_x[idx_tag, tag_oponent]
+            p_y_tag = p_y[idx_tag, tag_oponent]
+            self.ax_stats[k].plot(
                     p_x_tag,
                     p_y_tag,
-                    s=20,
-                    linewidths=linewidth,
-                    # color=level_colors[level_key],
+                    markersize=6,
+                    linewidth=0,
                     marker=self.node_shapes[l],
+                    label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
                     )
-
-        fig_path = self.results_folder + '/simplex_J'
+        self.ax_stats[k].legend()
+        fig_path = self.results_folder + '/simplex_J_intra_within'
         plt.savefig(fig_path)
         plt.pause(0.005)
         plt.show(block=False)
 
-        # # ------------------------------------
-        # # Plot the simplex in P
-        # # ------------------------------------
-        # k = 2
-        # plt.figure(self.fig_stats[k].number)
-        # self.ax_stats[k].clear()
-        # self._add_triangle(self.ax_stats[k])
 
-        # # Last element of p_all (in time)
-        # data = self.statistics['p_all'][-1]
-        # p_x, p_y = self._get_vertex_positions(data)
-        # print(np.shape(p_x))
-        # print(np.shape(p_y))
-        # for l in range(self.N_tags):
-        #     p_x_tag = p_x[:,l]
-        #     p_y_tag = p_y[:,l]
-        #     self.ax_stats[k].scatter(
-        #             p_x_tag,
-        #             p_y_tag,
-        #             s=20,
-        #             linewidths=linewidth,
-        #             # color=level_colors[level_key],
-        #             marker=self.node_shapes[l],
-        #             )
+        # Only plotting the inter-type equity (between Tags)
+        # when there are more than 1 tag.
+        # Function for N_tags > 2 not implemented.
+        if self.N_tags == 2:
+            # ------------------------------------------------
+            # Plot the simplex in J 
+            # Plotting the inter-type equity (between Tags)
+            # ------------------------------------------------
+            k = 2
+            plt.figure(self.fig_stats[k].number)
+            self.ax_stats[k].clear()
+            self._add_triangle(self.ax_stats[k])
+            # Last element of p_all (in time)
+            data = self.statistics['j_all'][-1]
+            p_x, p_y = self._get_vertex_positions(data)
 
-        # fig_path = self.results_folder + '/simplex_P'
-        # plt.savefig(fig_path)
-        # plt.pause(0.005)
-        # plt.show(block=False)
+            for l in range(self.N_tags):
+                tag_own = l
+                tag_oponents = set(range(self.N_tags))
+                tag_oponents = tag_oponents.difference(set([l]))
+                assert(len(tag_oponents)==1)
+                for tag_oponent in tag_oponents:
+                    idx_tag = np.where(self.tags == tag_own)[0]
+                    p_x_tag = p_x[idx_tag, tag_oponent]
+                    p_y_tag = p_y[idx_tag, tag_oponent]
+                    self.ax_stats[k].plot(
+                            p_x_tag,
+                            p_y_tag,
+                            markersize=6,
+                            linewidth=0,
+                            marker=self.node_shapes[l],
+                            label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
+                            )
+            self.ax_stats[k].legend()
+            fig_path = self.results_folder + '/simplex_J_inter_between'
+            plt.savefig(fig_path)
+            plt.pause(0.005)
+            plt.show(block=False)
+
 
     def _add_triangle(self, ax):
         temp = np.sin(60.*np.pi/180.)
