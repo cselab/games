@@ -8,23 +8,23 @@ import sys
 
 import pretty_errors
 
+# n = 33
+# Ns = 60
+# beta0 = 0.
+# beta1 = 3.
+# N_tags = 1
+# J0 = [ 4, 4, 4 ]
+# G = gr.lattice_von_neumann(n)
+
 n = 33
 Ns = 60
 beta0 = 0.
-beta1 = 3.
-N_tags = 1
-J0 = [ 4, 4, 4 ]
-G = gr.lattice_von_neumann(n)
-
-
-n = 33
-Ns = 60
-beta0 = 0.
-beta1 = 3.
+beta1 = 2.
 N_tags = 1
 J0 = [ 1, 10, 1 ]
-G = gr.off_lattice(n*n)beta = np.linspace(beta1, beta0, Ns)
+G = gr.off_lattice(n * n)
 
+beta = np.linspace(beta1, beta0, Ns)
 
 N_nodes = G.number_of_nodes()
 LHM = np.zeros((3, Ns, N_tags))
@@ -43,7 +43,7 @@ for k in range(Ns):
 
     game.play(N_epochs=100, N_per_epoch=N_per_epoch)
 
-    # game.plot_statistics()
+    game.plot_statistics()
 
     game.copy_data_to_graph()
     G = game.G
@@ -65,8 +65,10 @@ for k in range(Ns):
 
 for tag in range(N_tags):
     name = 'phase_beta_tag_' + str(tag) + '.txt'
-    z = ( beta[:,np.newaxis], np.squeeze(LHM[:, :, tag]).T )
-    z = np.concatenate( z, axis=1)
+    z = (beta[:, np.newaxis], np.squeeze(LHM[:, :, tag]).T)
+    z = np.concatenate(z, axis=1)
     np.savetxt(name, z, delimiter=' ')
+
+plt.savefig('phase_beta.eps', dpi=150)
 
 plt.show()

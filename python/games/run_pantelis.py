@@ -37,6 +37,3 @@ for k in range(100):
     game.plot_statistics()
 
 plt.show()
-
-
-
