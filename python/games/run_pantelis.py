@@ -14,7 +14,7 @@ beta = 2.0
 gamma = 0.1
 
 node_size = 100
-N_tags = 2
+N_tags = 1
 
 # J0 = [ 1, 4, 1 ]
 # J0 = [ 4, 1, 4 ]

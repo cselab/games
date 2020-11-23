@@ -23,7 +23,7 @@ game = bargain(G, beta=2., J0=[ 4, 4, 4 ], N_tags=1)
 
 for k in range(1):
     game.play(N_epochs=100, N_per_epoch=100000)
-    # game.plot_graph(node_size=node_size)
+    game.plot_graph(node_size=node_size)
     # game.plot_statistics()
 
 plt.show()
