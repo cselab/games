@@ -13,14 +13,15 @@ beta = 2.0
 # beta = 40.0
 gamma = 0.1
 
+node_size = 100
 N_tags = 2
 
 # J0 = [ 1, 4, 1 ]
 # J0 = [ 4, 1, 4 ]
 J0 = [ 4, 4, 4 ]
 
-# lattice = "off_lattice"
-lattice = "lattice_von_neumann"
+lattice = "off_lattice"
+# lattice = "lattice_von_neumann"
 
 if lattice == "off_lattice":
     G = gr.off_lattice(n * n)
@@ -31,10 +32,13 @@ run_name = "_results_{:}_{:}_{:}_{:}_{:}_Ν{:}".format(n, beta, gamma, J0, latti
 
 game = bargain(G, beta=beta, gamma=gamma, J0=J0, folder=run_name, N_tags=N_tags)
 
-for k in range(100):
+for k in range(1):
     game.play(N_epochs=10)
     # game.plot_graph(node_size=node_size)
     game.plot_statistics()
+
+game.plot_graph()
+# game.plot_graph(node_size=node_size)
 
 plt.show()
 
