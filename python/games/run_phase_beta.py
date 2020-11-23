@@ -37,9 +37,9 @@ for k in range(Ns):
     game = bargain(G, beta=beta[k], J0=J0, N_tags=N_tags)
 
     if k == 0:
-        N_per_epoch = int(1e6)
-    else:
         N_per_epoch = int(1e5)
+    else:
+        N_per_epoch = int(1e4)
 
     game.play(N_epochs=100, N_per_epoch=N_per_epoch)
 

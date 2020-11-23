@@ -31,9 +31,9 @@ def _probalility_of_action(x, beta):
     return p
 
 
-
 @jit
-def _iterate_graph( R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff, beta, gamma):
+def _iterate_graph(R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff,
+                   beta, gamma):
     iter = 0
 
     for i in range(N_per_epoch):
@@ -43,10 +43,10 @@ def _iterate_graph( R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, n
         begin = neighbors_offset[k]
         end = neighbors_offset[k + 1]
         if begin != end:
-            s = int( S[i] * (end - begin) )
+            s = int(S[i] * (end-begin))
             node2 = neighbors_flat[begin + s]
         else:
-            node2 = int( S[i] * N_nodes )
+            node2 = int(S[i] * N_nodes)
 
         tag1 = tags[node1]
         tag2 = tags[node2]
@@ -69,13 +69,13 @@ def _iterate_graph( R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, n
 
     return iter
 
-def iterate_graph( N_per_epoch, N_nodes, *args, **kwargs ):
+
+def iterate_graph(N_per_epoch, N_nodes, *args, **kwargs):
     R = np.random.randint(0, N_nodes, size=N_per_epoch)
     Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
     S = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, ))
 
     return _iterate_graph(R, Q, S, N_per_epoch, N_nodes, *args, **kwargs)
-
 
 
 class bargain:
@@ -116,6 +116,9 @@ class bargain:
         self.ax_graph = None
         self.fig_stats = None
         self.ax_stats = None
+        self.fig_simplex = None
+        self.ax_simplex = None
+        
 
         os.makedirs(self.results_folder, exist_ok=True)
 
@@ -136,8 +139,8 @@ class bargain:
         print('[games] Initializing the game...')
         self.J = np.zeros((self.N_nodes, self.N_tags, 3))
         self.P = np.zeros((self.N_nodes, self.N_tags, 3))
-        self.tags = np.zeros((self.N_nodes,), dtype=int)
-        self.actions = np.zeros((self.N_nodes,), dtype=int)
+        self.tags = np.zeros((self.N_nodes, ), dtype=int)
+        self.actions = np.zeros((self.N_nodes, ), dtype=int)
         self.nodes_with_tag = [[] for _ in range(self.N_tags)]
 
         # Graph has already 'J' and 'tag' data
@@ -176,7 +179,7 @@ class bargain:
         self.neighbors_offsets = np.zeros((len(self.G.nodes) + 1, ), dtype=np.int32)
         offset = 0
         for i, l in enumerate(self.neighbors):
-            self.neighbors_flat[offset : offset + len(l)] = np.array(l)
+            self.neighbors_flat[offset:offset + len(l)] = np.array(l)
             self.neighbors_offsets[i + 1] = offset + len(l)
             offset += len(l)
 
@@ -197,8 +200,8 @@ class bargain:
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
             for e in range(N_epochs):
                 self.iter = iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
-                                  self.nodes, self.neighbors_flat, self.neighbors_offsets,
-                                  self.payoff, self.beta, self.gamma)
+                                          self.nodes, self.neighbors_flat, self.neighbors_offsets, self.payoff,
+                                          self.beta, self.gamma)
                 self._update_statistics()
                 pbar.update(1)
 
@@ -273,7 +276,6 @@ class bargain:
             self.statistics['per_M'] = np.empty((0, self.N_tags))
             self.statistics['per_H'] = np.empty((0, self.N_tags))
 
-
         # find the percentage of nodes that pick a specific probability per tag
         epsilon = 0.01
         per_L = np.sum(self.P[:, :, 0] > 1.0 - epsilon, axis=0)[:, np.newaxis].T
@@ -287,22 +289,10 @@ class bargain:
         self.statistics['per_M'] = np.append(self.statistics['per_M'], per_M, axis=0)
         self.statistics['per_H'] = np.append(self.statistics['per_H'], per_H, axis=0)
 
-    def _get_vertex_positions(self, data):
-        assert (len(np.shape(data)) == 3)
-        # data of the form [T, N, 3]
-        # (J1+J2+J3)
-        den = np.sum(data, axis=2)
-        # (J2 + J3/2)/(J1+J2+J3)
-        data_x = (data[:, :, 1] + data[:, :, 2] / 2.0) / den
-        # \sqrt(3) * J3/2 /(J1+J2+J3)
-        data_y = np.sqrt(3) * data[:, :, 2] / 2.0 / den
-        return data_x, data_y
-
     def plot_statistics(self, fig_size=(10, 10)):
         if self.fig_stats == None:
             print(f'[games] Initializing plotting statistics:')
             self.N_plot_stats = 1  # number of stats plots
-            self.N_plot_stats += self.N_tags
             self.fig_stats = []
             self.ax_stats = []
             for i in range(self.N_plot_stats):
@@ -347,11 +337,54 @@ class bargain:
         plt.pause(0.005)
         plt.show(block=False)
 
+    def _get_vertex_positions(self, data):
+        assert (len(np.shape(data)) == 3)
+        # data of the form [T, N, 3]
+        # (J1+J2+J3)
+        den = np.sum(data, axis=2)
+        # (J2 + J3/2)/(J1+J2+J3)
+        data_x = (data[:, :, 1] + data[:, :, 2] / 2.0) / den
+        # \sqrt(3) * J3/2 /(J1+J2+J3)
+        data_y = np.sqrt(3) * data[:, :, 2] / 2.0 / den
+        return data_x, data_y
 
+    def _add_triangle(self, ax):
+        temp = np.sin(60. * np.pi / 180.)
+        edges = [[ 0, 0 ], [ 0.5, temp ], [ 1, 0 ]]
+        ax.add_patch(plt.Polygon(edges, color="k", fill=False, linewidth=4, alpha=0.8))
+        ax.set_xlim([-0.1, 1.1])
+        ax.set_ylim([-0.1, 1.1])
+        margin = 0.05
+        ax.text(-0.02, 0 + margin, "H", fontsize=16, fontweight='bold')
+        ax.text(1, 0 + margin, "M", fontsize=16, fontweight='bold')
+        ax.text(0.5, temp + margin, "L", fontsize=16, fontweight='bold')
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        ax.axis("off")
+
+    def plot_simplex(self, fig_size=(10, 10)):
+        if self.fig_simplex == None:
+            print(f'[games] Initializing plotting statistics:')
+            self.N_plot_stats = 1  # number of stats plots
+            self.fig_simplex = []
+            self.ax_simplex = []
+            for i in range(self.N_plot_stats):
+                fig, ax = plt.subplots(figsize=fig_size)
+                self.fig_simplex.append(fig)
+                self.ax_simplex.append(ax)
+
+        level_keys = [ 'L', 'M', 'H']
+        level_colors = {
+            'L': 'tab:red',
+            'M': 'tab:green',
+            'H': 'tab:blue',
+        }
+        linewidth = 2
         # ------------------------------------
         # Plot the simplex in J
         # ------------------------------------
-        k = 1
+        k = 0
         plt.figure(self.fig_stats[k].number)
         self.ax_stats[k].clear()
         self._add_triangle(self.ax_stats[k])
@@ -359,19 +392,19 @@ class bargain:
         # Last element of p_all (in time)
         data = self.statistics['j_all'][-1]
         p_x, p_y = self._get_vertex_positions(data)
-        print(np.shape(p_x))
-        print(np.shape(p_y))
+        # print(np.shape(p_x))
+        # print(np.shape(p_y))
         for l in range(self.N_tags):
-            p_x_tag = p_x[:,l]
-            p_y_tag = p_y[:,l]
+            p_x_tag = p_x[:, l]
+            p_y_tag = p_y[:, l]
             self.ax_stats[k].scatter(
-                    p_x_tag,
-                    p_y_tag,
-                    s=20,
-                    linewidths=linewidth,
-                    # color=level_colors[level_key],
-                    marker=self.node_shapes[l],
-                    )
+                p_x_tag,
+                p_y_tag,
+                s=20,
+                linewidths=linewidth,
+                # color=level_colors[level_key],
+                marker=self.node_shapes[l],
+            )
 
         fig_path = self.results_folder + '/simplex_J'
         plt.savefig(fig_path)
@@ -407,23 +440,3 @@ class bargain:
         # plt.savefig(fig_path)
         # plt.pause(0.005)
         # plt.show(block=False)
-
-    def _add_triangle(self, ax):
-        temp = np.sin(60.*np.pi/180.)
-        edges = [[0,0], [0.5, temp], [1, 0]]
-        ax.add_patch(plt.Polygon(edges, color="k", fill=False, linewidth=4, alpha=0.8))
-        ax.set_xlim([-0.1,1.1])
-        ax.set_ylim([-0.1,1.1])
-        margin=0.05
-        ax.text(-0.02, 0+margin, "H", fontsize=16, fontweight='bold')
-        ax.text(1, 0+margin, "M", fontsize=16, fontweight='bold')
-        ax.text(0.5, temp+margin, "L", fontsize=16, fontweight='bold')
-
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        ax.axis("off")
-
-
-
-
-
