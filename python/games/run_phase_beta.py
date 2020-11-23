@@ -8,13 +8,15 @@ import sys
 
 import pretty_errors
 
-n = 10
+n = 33
 Ns = 60
 
 beta = np.linspace(3, 0, Ns)
 
-# G = gr.lattice_von_neumann(n)
-G = gr.off_lattice(n*n)
+
+
+G = gr.lattice_von_neumann(n)
+# G = gr.off_lattice(n*n)
 
 N_nodes = G.number_of_nodes()
 N_tags = 1
@@ -28,16 +30,21 @@ for k in range(Ns):
 
     game = bargain(G, beta=beta[k], J0=[ 4, 4, 4 ], N_tags=N_tags)
 
-    game.play(N_epochs=10,N_per_epoch=100)
+    if k == 0:
+        N_per_epoch = int(1e6)
+    else:
+        N_per_epoch = int(1e5)
 
-    game.plot_statistics()
+    game.play(N_epochs=100, N_per_epoch=N_per_epoch)
+
+    # game.plot_statistics()
 
     game.copy_data_to_graph()
     G = game.G
 
-    LHM[0, k, :] = np.sum( game.actions==0 ) / N_nodes
-    LHM[1, k, :] = np.sum( game.actions==1 ) / N_nodes
-    LHM[2, k, :] = np.sum( game.actions==2 ) / N_nodes
+    LHM[0, k, :] = np.sum(game.actions == 0) / N_nodes
+    LHM[1, k, :] = np.sum(game.actions == 1) / N_nodes
+    LHM[2, k, :] = np.sum(game.actions == 2) / N_nodes
 
     plt.figure(fig.number)
     ax.clear()
@@ -51,7 +58,9 @@ for k in range(Ns):
     plt.show(block=False)
 
 for tag in range(N_tags):
-    name ='phase_beta_tag_' + str(tag) + '.txt'
-    np.savetxt(name, np.squeeze(LHM[tag,:,:]), delimiter=' ')
+    name = 'phase_beta_tag_' + str(tag) + '.txt'
+    z = ( beta[:,np.newaxis], np.squeeze(LHM[:, :, tag]).T )
+    z = np.concatenate( z, axis=1)
+    np.savetxt(name, z, delimiter=' ')
 
 plt.show()

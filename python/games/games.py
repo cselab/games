@@ -33,7 +33,7 @@ def _probalility_of_action(x, beta):
 
 
 @jit
-def _iterate_graph( R, Q, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff, beta, gamma):
+def _iterate_graph( R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff, beta, gamma):
     iter = 0
 
     for i in range(N_per_epoch):
@@ -43,10 +43,10 @@ def _iterate_graph( R, Q, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neig
         begin = neighbors_offset[k]
         end = neighbors_offset[k + 1]
         if begin != end:
-            s = np.random.randint(0, end - begin)
+            s = int( S[i] * (end - begin) )
             node2 = neighbors_flat[begin + s]
         else:
-            node2 = np.random.randint(0, N_nodes)
+            node2 = int( S[i] * N_nodes )
 
         tag1 = tags[node1]
         tag2 = tags[node2]
@@ -72,8 +72,9 @@ def _iterate_graph( R, Q, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neig
 def iterate_graph( N_per_epoch, N_nodes, *args, **kwargs ):
     R = np.random.randint(0, N_nodes, size=N_per_epoch)
     Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
+    S = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, ))
 
-    return _iterate_graph(R, Q, N_per_epoch, N_nodes, *args, **kwargs)
+    return _iterate_graph(R, Q, S, N_per_epoch, N_nodes, *args, **kwargs)
 
 
 
