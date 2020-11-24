@@ -338,15 +338,26 @@ class bargain:
         plt.pause(0.005)
         plt.show(block=False)
 
-    def _get_vertex_positions(self, data):
-        assert (len(np.shape(data)) == 3)
+    def _get_vertex_positions(self, data, prob_axis=2):
+        assert(prob_axis in [2, 3])
+        assert (np.shape(data)[prob_axis] == 3)
         # data of the form [T, N, 3]
-        # (J1+J2+J3)
-        den = np.sum(data, axis=2)
-        # (J2 + J3/2)/(J1+J2+J3)
-        data_x = (data[:, :, 1] + data[:, :, 2] / 2.0) / den
-        # \sqrt(3) * J3/2 /(J1+J2+J3)
-        data_y = np.sqrt(3) * data[:, :, 2] / 2.0 / den
+        # (JL + JM + JH)
+        den = np.sum(data, axis=prob_axis)
+
+        # Vertices JL, JM, JH
+        if prob_axis==2:
+
+            # (JL + JM/2)/(JL+JM+JH)
+            data_x = (data[:, :, 0] + data[:, :, 1] / 2.0) / den
+
+            # \sqrt(3) * JM/2 /(JL+JM+JH)
+            data_y = np.sqrt(3) * data[:, :, 1] / 2.0 / den
+
+        elif prob_axis==3:
+            data_x = (data[:, :, :, 0] + data[:, :, :, 1] / 2.0) / den
+            data_y = np.sqrt(3) * data[:, :, :, 1] / 2.0 / den
+
         return data_x, data_y
 
     def _add_triangle(self, ax):
@@ -357,8 +368,8 @@ class bargain:
         ax.set_ylim([-0.1, 1.1])
         margin = 0.05
         ax.text(-0.02, 0 + margin, "H", fontsize=16, fontweight='bold')
-        ax.text(1, 0 + margin, "M", fontsize=16, fontweight='bold')
-        ax.text(0.5, temp + margin, "L", fontsize=16, fontweight='bold')
+        ax.text(1, 0 + margin, "L", fontsize=16, fontweight='bold')
+        ax.text(0.5, temp + margin, "M", fontsize=16, fontweight='bold')
 
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
@@ -367,7 +378,7 @@ class bargain:
     def plot_simplex(self, fig_size=(10, 10)):
         if self.fig_simplex == None:
             print(f'[games] Initializing plotting statistics:')
-            self.N_plot_stats = 1  # number of stats plots
+            self.N_plot_stats = 2  # number of stats plots
             self.fig_simplex = []
             self.ax_simplex = []
             for i in range(self.N_plot_stats):
@@ -382,62 +393,141 @@ class bargain:
             'H': 'tab:blue',
         }
         linewidth = 2
-        # ------------------------------------
-        # Plot the simplex in J
-        # ------------------------------------
-        k = 0
-        plt.figure(self.fig_stats[k].number)
-        self.ax_stats[k].clear()
-        self._add_triangle(self.ax_stats[k])
 
-        # Last element of p_all (in time)
-        data = self.statistics['j_all'][-1]
-        p_x, p_y = self._get_vertex_positions(data)
-        # print(np.shape(p_x))
-        # print(np.shape(p_y))
-        for l in range(self.N_tags):
-            p_x_tag = p_x[:, l]
-            p_y_tag = p_y[:, l]
-            self.ax_stats[k].scatter(
-                p_x_tag,
-                p_y_tag,
-                s=20,
-                linewidths=linewidth,
-                # color=level_colors[level_key],
-                marker=self.node_shapes[l],
-            )
+        if self.N_tags == 1:
+            # ------------------------------------
+            # Plot the simplex in J (evolution)
+            # ------------------------------------
+            k = 0
+            plt.figure(self.fig_simplex[k].number)
+            self.ax_simplex[k].clear()
+            self._add_triangle(self.ax_simplex[k])
 
-        fig_path = self.results_folder + '/simplex_J'
-        plt.savefig(fig_path)
-        plt.pause(0.005)
-        plt.show(block=False)
+            # Last element of p_all (in time)
+            data = self.statistics['j_all']
+            p_x, p_y = self._get_vertex_positions(data, prob_axis=3)
+            # print(np.shape(p_x))
+            # print(np.shape(p_y))
+            for agent in range(self.N_nodes):
+                for l in range(self.N_tags):
+                    p_x_tag = p_x[:, agent, l]
+                    p_y_tag = p_y[:, agent, l]
+                    self.ax_simplex[k].plot(
+                        p_x_tag,
+                        p_y_tag,
+                        markersize=8,
+                        linewidth=linewidth,
+                        marker=self.node_shapes[l],
+                    )
 
-        # # ------------------------------------
-        # # Plot the simplex in P
-        # # ------------------------------------
-        # k = 2
-        # plt.figure(self.fig_stats[k].number)
-        # self.ax_stats[k].clear()
-        # self._add_triangle(self.ax_stats[k])
+            fig_path = self.results_folder + '/simplex_J_evolution'
+            plt.savefig(fig_path)
+            plt.pause(0.005)
+            plt.show(block=False)
 
-        # # Last element of p_all (in time)
-        # data = self.statistics['p_all'][-1]
-        # p_x, p_y = self._get_vertex_positions(data)
-        # print(np.shape(p_x))
-        # print(np.shape(p_y))
-        # for l in range(self.N_tags):
-        #     p_x_tag = p_x[:,l]
-        #     p_y_tag = p_y[:,l]
-        #     self.ax_stats[k].scatter(
-        #             p_x_tag,
-        #             p_y_tag,
-        #             s=20,
-        #             linewidths=linewidth,
-        #             # color=level_colors[level_key],
-        #             marker=self.node_shapes[l],
-        #             )
 
-        # fig_path = self.results_folder + '/simplex_P'
-        # plt.savefig(fig_path)
-        # plt.pause(0.005)
-        # plt.show(block=False)
+            # ------------------------------------
+            # Plot the simplex in J (final state)
+            # ------------------------------------
+            k = 1
+            plt.figure(self.fig_simplex[k].number)
+            self.ax_simplex[k].clear()
+            self._add_triangle(self.ax_simplex[k])
+
+            # Last element of p_all (in time)
+            data = self.statistics['j_all'][-1]
+            p_x, p_y = self._get_vertex_positions(data, prob_axis=2)
+            # print(np.shape(p_x))
+            # print(np.shape(p_y))
+            for l in range(self.N_tags):
+                p_x_tag = p_x[:, l]
+                p_y_tag = p_y[:, l]
+                self.ax_simplex[k].plot(
+                    p_x_tag+0.01*np.random.randn(*np.shape(p_x_tag)),
+                    p_y_tag+0.01*np.random.randn(*np.shape(p_y_tag)),
+                    markersize=8,
+                    linewidth=0,
+                    marker=self.node_shapes[l],
+                )
+
+            fig_path = self.results_folder + '/simplex_J_final_all'
+            plt.savefig(fig_path)
+            plt.pause(0.005)
+            plt.show(block=False)
+
+
+
+        # Only plotting the inter-type equity (between Tags)
+        # when there are more than 1 tag.
+        # Function for N_tags > 2 not implemented.
+        if self.N_tags == 2:
+
+            # ------------------------------------------------
+            # Plot the simplex in J 
+            # Plotting the intra-type equity (Tag versus own tag)
+            # ------------------------------------------------
+            k = 0
+            plt.figure(self.fig_simplex[k].number)
+            self.ax_simplex[k].clear()
+            self._add_triangle(self.ax_simplex[k])
+
+            # Last element of p_all (in time)
+            data = self.statistics['j_all'][-1]
+            p_x, p_y = self._get_vertex_positions(data)
+            for l in range(self.N_tags):
+                tag_own = l
+                tag_oponent = l
+                idx_tag = np.where(self.tags == tag_own)[0]
+                p_x_tag = p_x[idx_tag, tag_oponent]
+                p_y_tag = p_y[idx_tag, tag_oponent]
+                self.ax_simplex[k].plot(
+                        p_x_tag+0.01*np.random.randn(*np.shape(p_x_tag)),
+                        p_y_tag+0.01*np.random.randn(*np.shape(p_y_tag)),
+                        markersize=8,
+                        linewidth=0,
+                        marker=self.node_shapes[l],
+                        label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
+                        )
+
+            self.ax_simplex[k].legend()
+            fig_path = self.results_folder + '/simplex_J_intra_within'
+            plt.savefig(fig_path)
+            plt.pause(0.005)
+            plt.show(block=False)
+
+
+
+            # ------------------------------------------------
+            # Plot the simplex in J 
+            # Plotting the inter-type equity (between Tags)
+            # ------------------------------------------------
+            k = 1
+            plt.figure(self.fig_simplex[k].number)
+            self.ax_simplex[k].clear()
+            self._add_triangle(self.ax_simplex[k])
+            # Last element of p_all (in time)
+            data = self.statistics['j_all'][-1]
+            p_x, p_y = self._get_vertex_positions(data)
+
+            for l in range(self.N_tags):
+                tag_own = l
+                tag_oponents = set(range(self.N_tags))
+                tag_oponents = tag_oponents.difference(set([l]))
+                assert(len(tag_oponents)==1)
+                for tag_oponent in tag_oponents:
+                    idx_tag = np.where(self.tags == tag_own)[0]
+                    p_x_tag = p_x[idx_tag, tag_oponent]
+                    p_y_tag = p_y[idx_tag, tag_oponent]
+                    self.ax_simplex[k].plot(
+                            p_x_tag+0.01*np.random.randn(*np.shape(p_x_tag)),
+                            p_y_tag+0.01*np.random.randn(*np.shape(p_y_tag)),
+                            markersize=6,
+                            linewidth=0,
+                            marker=self.node_shapes[l],
+                            label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
+                            )
+            self.ax_simplex[k].legend()
+            fig_path = self.results_folder + '/simplex_J_inter_between'
+            plt.savefig(fig_path)
+            plt.pause(0.005)
+            plt.show(block=False)
