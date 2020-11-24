@@ -34,7 +34,6 @@ def _probalility_of_action(x, beta):
 @jit
 def _iterate_graph(R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, neighbors_flat, neighbors_offset, payoff,
                    beta, gamma):
-    iter = 0
 
     for i in range(N_per_epoch):
         k = R[i]
@@ -65,9 +64,6 @@ def _iterate_graph(R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, ne
         P[node1][tag2] = _probalility_of_action(J[node1][tag2], beta)
         P[node2][tag1] = _probalility_of_action(J[node2][tag1], beta)
 
-        iter += 1
-
-    return iter
 
 
 def iterate_graph(N_per_epoch, N_nodes, *args, **kwargs):
@@ -75,7 +71,7 @@ def iterate_graph(N_per_epoch, N_nodes, *args, **kwargs):
     Q = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, 2))
     S = np.random.uniform(low=0.0, high=1.0, size=(N_per_epoch, ))
 
-    return _iterate_graph(R, Q, S, N_per_epoch, N_nodes, *args, **kwargs)
+    _iterate_graph(R, Q, S, N_per_epoch, N_nodes, *args, **kwargs)
 
 
 class bargain:
@@ -199,10 +195,10 @@ class bargain:
                   desc='[games] Running for {:} epochs'.format(N_epochs),
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
             for e in range(N_epochs):
-                iter_ = iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
+                iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
                                           self.nodes, self.neighbors_flat, self.neighbors_offsets, self.payoff,
                                           self.beta, self.gamma)
-                self.iter += iter_
+                self.iter += N_per_epoch
                 self._update_statistics()
                 pbar.update(1)
 
