@@ -24,10 +24,21 @@ def size_of_nodes(x):
     return np.exp(b*x + a) + np.exp(d*x + c)
 
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def _probalility_of_action(x, beta):
     p = np.exp(beta * x)
-    p /= np.sum(p)
+    if p.ndim==2:
+        # p0 = np.sum(p, axis=1)
+        
+        for i in range(p.shape[0]):
+            print('---->',np.sum(p[i]))
+            p[i] = p[i]/np.sum(p[i])
+    elif p.ndim==1:
+        print('======>',p)
+        p0 = np.sum(p)
+        return p/p0
+    
+    
     return p
 
 
@@ -227,14 +238,12 @@ class bargain:
         if node_size == None:
             node_size = size_of_nodes(self.N_nodes)
 
+        node_color = self.P
+        
         for k in range(self.N_tags):
-            node_color = self.P
-
+            
             plt.figure(self.fig_graph[k].number)
             self.ax_graph[k].clear()
-
-            # print(node_color[self.nodes_with_tag[0]].shape)
-            # sys.exit()
 
             for l in range(self.N_tags):
                 nx.draw_networkx_nodes(self.G,
