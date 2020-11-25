@@ -85,6 +85,7 @@ class bargain:
         payoff=None,
         N_tags=1,
         folder='_results',
+        random_init=True,
     ):
 
         self.G = G
@@ -95,6 +96,7 @@ class bargain:
         self.N_tags = N_tags
         self.results_folder = folder
         np.random.seed(seed)
+        self.random_init = random_init
 
         self.N_nodes = G.number_of_nodes()
 
@@ -141,7 +143,10 @@ class bargain:
                 or 'has data' not in self.G.graph.keys()):
             for node in self.G:
                 node_data = self.G.nodes[node]
-                node_data['J'] = np.random.uniform(low=0, high=self.J0, size=(self.N_tags, 3)).astype('float64')
+                if self.random_init==True:
+                    node_data['J'] = np.random.uniform(low=0, high=self.J0, size=(self.N_tags, 3)).astype('float64')
+                else:
+                    node_data['J'] = self.J0
                 node_data['tag'] = np.random.randint(0, self.N_tags)
             self.G.graph['has data'] = True
 

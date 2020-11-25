@@ -11,11 +11,11 @@ import pretty_errors
 n = 10
 node_size = 300
 
-# G = gr.lattice_von_neumann(n)
+G = gr.lattice_von_neumann(n)
 # G = gr.lattice_moore(n)
 # G = gr.barabasi_albert(n * n, k=1)
 # G = gr.path(n*n)
-G = gr.off_lattice(n * n)
+# G = gr.off_lattice(n * n)
 
 game = bargain(G, beta=2, J0=[ 6, 4, 3 ], N_tags=2)
 

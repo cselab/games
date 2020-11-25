@@ -7,6 +7,9 @@ import time
 import pretty_errors
 import sys
 
+plt.rcParams.update({'font.size': 16})
+fig, ax = plt.subplots(figsize=(13,10))
+
 # Set up model
 DSargs = dst.args(name='Off-lattice bargain')
 
@@ -18,14 +21,13 @@ DSargs.varspecs = {
 }
 
 # J0 = [1.,1.,1.]
-# J0 = [6.,8.,6.]
-# J0 = [6.,1.,6.]
-# J0 = [8.,5.,6.]
-J0 = [ 6., 0., 3. ]
+# J0 = [ 4., 1., 8. ]
+# J0 = [ 6., 0., 3. ]
+J0 = [ 1., 0.5, 1. ]
 
 DSargs.ics = { 'y1': J0[0], 'y2': J0[1], 'y3': J0[2] }
 
-DSargs.pdomain = { 'beta': [ 0.1, 2 ] }
+DSargs.pdomain = { 'beta': [ 0.25, 2 ] }
 
 testDS = dst.Generator.Vode_ODEsystem(DSargs)
 
@@ -95,17 +97,19 @@ if PC['EQ1'].getSpecialPoint('LP1'):
     # PC['EQ4'].backward()
     PC['EQ4'].info()
 
-PC.display(('beta', 'y1'), linestyle='-', label='J_1', figure=1)
-PC.display(('beta', 'y2'), linestyle='--', label='J_2', figure=1)
-PC.display(('beta', 'y3'), linestyle='-.', label='J_3', figure=1)
+PC.display(('beta', 'y1'), linestyle='-',  linewidth=3, label=r'$J_1$', figure=1)
+PC.display(('beta', 'y2'), linestyle='--', linewidth=3, label=r'$J_2$', figure=1)
+PC.display(('beta', 'y3'), linestyle='-.', linewidth=3, label=r'$J_3$', figure=1)
 
 PC.plot.toggleAll('off', bytype='P')
 PC.plot.toggleAll('off', bytype='B')
 
 plt.grid(True)
 plt.legend()
-plt.ylabel('J')
-plt.title(f'J1={J0[0]}   -   J2={J0[1]}   -   J3={J0[2]}')
-plt.savefig('phase.eps', dpi=150)
+plt.xlabel(r'$\beta$')
+plt.ylabel(r'$J$')
+
+plt.title(rf'$J_1={J0[0]}$   -   $J_2={J0[1]}$   -   $J_3={J0[2]}$')
+plt.savefig('phase.pdf', dpi=150)
 
 plt.show()
