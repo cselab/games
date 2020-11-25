@@ -10,16 +10,15 @@ import networkx as nx
 # Figure 3
 ########################
 
-n           = 6
-beta        = 2.0
-gamma       = 0.1
-N_tags      = 1
-J0          = [ 4, 4, 4 ]
-N_epochs    = 2000
-num_runs    = 1
-lattice     = "lattice_von_neumann"
-node_size   = 100
-
+n = 6
+beta = 2.0
+gamma = 0.1
+N_tags = 1
+J0 = [ 4, 4, 4 ]
+N_epochs = 2000
+num_runs = 1
+lattice = "lattice_von_neumann"
+node_size = 100
 
 # n           = 6
 # beta        = 2.0
@@ -30,8 +29,6 @@ node_size   = 100
 # num_runs    = 1
 # lattice     = "off_lattice"
 # node_size   = 100
-
-
 
 if lattice == "off_lattice":
     G = gr.off_lattice(n * n)
@@ -50,4 +47,3 @@ for k in range(num_runs):
 game.plot_graph(node_size=node_size)
 game.plot_statistics()
 game.plot_simplex()
-

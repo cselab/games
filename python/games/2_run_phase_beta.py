@@ -26,11 +26,11 @@ J0 = [ 6, 0, 3 ]
 G = gr.off_lattice(n * n)
 # Ns = 60
 # beta = np.linspace(beta1, beta0, Ns)
-Ns = 14+20+20
-x1 = np.linspace(beta1,1.5,10)
+Ns = 14 + 20 + 20
+x1 = np.linspace(beta1, 1.5, 10)
 x2 = np.linspace(1.5, 1.25, 20)
 x3 = np.linspace(1.25, beta0, 20)
-beta = np.concatenate((x1,x2,x3))
+beta = np.concatenate((x1, x2, x3))
 Ns = beta.shape[0]
 
 N_nodes = G.number_of_nodes()

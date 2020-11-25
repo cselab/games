@@ -15,7 +15,7 @@ N_tags = 1
 J0 = [ 4, 4, 4 ]
 G = gr.lattice_von_neumann(n)
 beta = np.linspace(beta1, beta0, 60)
-beta = np.concatenate((beta,np.flip(beta[1:-1])))
+beta = np.concatenate((beta, np.flip(beta[1:-1])))
 
 # n = 33
 # beta0 = 0.
@@ -33,7 +33,6 @@ beta = np.concatenate((beta,np.flip(beta[1:-1])))
 # # beta = np.concatenate((x1,x2,x3))
 # beta = np.concatenate((beta,np.flip(beta[1:-1])))
 
-
 Ns = beta.shape[0]
 N_nodes = G.number_of_nodes()
 LHM = np.zeros((3, Ns, N_tags))
@@ -44,7 +43,7 @@ for k in range(Ns):
     print(f'Running {k} out of {Ns} betas...')
 
     game = bargain(G, beta=beta[k], J0=J0, N_tags=N_tags)
-# 
+    #
     if k == 0:
         N_per_epoch = int(5e5)
     else:

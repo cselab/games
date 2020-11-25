@@ -11,62 +11,59 @@ import networkx as nx
 ########################
 # 1000 iterations per agent
 # Figure 1a (upper left)
-n           = 33
-beta        = 0.3
-gamma       = 0.1
-N_tags      = 1
-J0          = [ 4, 4, 4 ]
-N_epochs    = 2000
-num_runs    = 1
-lattice     = "lattice_von_neumann"
-node_size   = 100
+n = 33
+beta = 0.3
+gamma = 0.1
+N_tags = 1
+J0 = [ 4, 4, 4 ]
+N_epochs = 2000
+num_runs = 1
+lattice = "lattice_von_neumann"
+node_size = 100
 
 # Figure 1b (upper right)
-n           = 33
-beta        = 1.0
-gamma       = 0.1
-N_tags      = 1
-J0          = [ 4, 4, 4 ]
-N_epochs    = 2000
-num_runs    = 1
-lattice     = "lattice_von_neumann"
-node_size   = 100
-
+n = 33
+beta = 1.0
+gamma = 0.1
+N_tags = 1
+J0 = [ 4, 4, 4 ]
+N_epochs = 2000
+num_runs = 1
+lattice = "lattice_von_neumann"
+node_size = 100
 
 # Figure 1c (lower left)
-n           = 33
-beta        = 2.0
-gamma       = 0.1
-N_tags      = 1
-J0          = [ 4, 1, 4 ]
-N_epochs    = 2000
-num_runs    = 1
-lattice     = "lattice_von_neumann"
-node_size   = 100
-
+n = 33
+beta = 2.0
+gamma = 0.1
+N_tags = 1
+J0 = [ 4, 1, 4 ]
+N_epochs = 2000
+num_runs = 1
+lattice = "lattice_von_neumann"
+node_size = 100
 
 # Figure 1d (lower right)
-n           = 33
-beta        = 2.0
-gamma       = 0.1
-N_tags      = 1
-J0          = [ 4, 4, 4 ]
-N_epochs    = 2000
-num_runs    = 1
-lattice     = "lattice_von_neumann"
-node_size   = 100
+n = 33
+beta = 2.0
+gamma = 0.1
+N_tags = 1
+J0 = [ 4, 4, 4 ]
+N_epochs = 2000
+num_runs = 1
+lattice = "lattice_von_neumann"
+node_size = 100
 
 # Figure 2a
-n           = 33
-beta        = 2.0
-gamma       = 0.1
-N_tags      = 1
-J0          = [ 1, 4, 1 ]
-N_epochs    = 2000
-num_runs    = 1
-lattice     = "lattice_von_neumann"
-node_size   = 100
-
+n = 33
+beta = 2.0
+gamma = 0.1
+N_tags = 1
+J0 = [ 1, 4, 1 ]
+N_epochs = 2000
+num_runs = 1
+lattice = "lattice_von_neumann"
+node_size = 100
 
 if lattice == "off_lattice":
     G = gr.off_lattice(n * n)
@@ -84,4 +81,3 @@ for k in range(num_runs):
 
 game.plot_graph(node_size=node_size)
 game.plot_statistics()
-

@@ -6,17 +6,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
-n           = 36
-beta        = 1.2
-gamma       = 0.1
-N_tags      = 2
-J0          = [ 4, 1, 4 ]
+n = 36
+beta = 1.2
+gamma = 0.1
+N_tags = 2
+J0 = [ 4, 1, 4 ]
 # N_epochs    = 600
-N_epochs    = 2000
-num_runs    = 1
-lattice     = "off_lattice"
-node_size   = 1000
-seed        = 50
+N_epochs = 2000
+num_runs = 1
+lattice = "off_lattice"
+node_size = 1000
+seed = 50
 
 # n           = 36
 # beta        = 1.0
@@ -28,7 +28,6 @@ seed        = 50
 # lattice     = "off_lattice"
 # node_size   = 1000
 # seed        = 1
-
 
 if lattice == "off_lattice":
     G = gr.off_lattice(n * n)
@@ -48,4 +47,3 @@ for k in range(num_runs):
 game.plot_statistics()
 game.plot_simplex()
 # game.plot_graph(node_size=node_size)
-

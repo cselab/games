@@ -44,7 +44,6 @@ for k in range(Ns):
 
     game.plot_statistics()
 
-
     LHM[0, k, :] = np.sum(game.actions == 0) / N_nodes
     LHM[1, k, :] = np.sum(game.actions == 1) / N_nodes
     LHM[2, k, :] = np.sum(game.actions == 2) / N_nodes
@@ -61,4 +60,3 @@ for k in range(Ns):
     # plt.show(block=False)
 
 plt.savefig('phase_lamda.eps', dpi=150)
-

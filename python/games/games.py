@@ -24,22 +24,10 @@ def size_of_nodes(x):
     return np.exp(b*x + a) + np.exp(d*x + c)
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def _probalility_of_action(x, beta):
     p = np.exp(beta * x)
-    if p.ndim==2:
-        # p0 = np.sum(p, axis=1)
-        
-        for i in range(p.shape[0]):
-            print('---->',np.sum(p[i]))
-            p[i] = p[i]/np.sum(p[i])
-    elif p.ndim==1:
-        print('======>',p)
-        p0 = np.sum(p)
-        return p/p0
-    
-    
-    return p
+    return (p.T / p.sum(axis=-1)).T
 
 
 @jit
@@ -74,7 +62,6 @@ def _iterate_graph(R, Q, S, N_per_epoch, N_nodes, P, J, actions, tags, nodes, ne
 
         P[node1][tag2] = _probalility_of_action(J[node1][tag2], beta)
         P[node2][tag1] = _probalility_of_action(J[node2][tag1], beta)
-
 
 
 def iterate_graph(N_per_epoch, N_nodes, *args, **kwargs):
@@ -125,7 +112,6 @@ class bargain:
         self.ax_stats = None
         self.fig_simplex = None
         self.ax_simplex = None
-        
 
         os.makedirs(self.results_folder, exist_ok=True)
 
@@ -206,9 +192,8 @@ class bargain:
                   desc='[games] Running for {:} epochs'.format(N_epochs),
                   bar_format='{l_bar}{bar} [ time left: {remaining} ]') as pbar:
             for e in range(N_epochs):
-                iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags,
-                                          self.nodes, self.neighbors_flat, self.neighbors_offsets, self.payoff,
-                                          self.beta, self.gamma)
+                iterate_graph(N_per_epoch, self.N_nodes, self.P, self.J, self.actions, self.tags, self.nodes,
+                              self.neighbors_flat, self.neighbors_offsets, self.payoff, self.beta, self.gamma)
                 self.iter += N_per_epoch
                 self._update_statistics()
                 pbar.update(1)
@@ -239,9 +224,9 @@ class bargain:
             node_size = size_of_nodes(self.N_nodes)
 
         node_color = self.P
-        
+
         for k in range(self.N_tags):
-            
+
             plt.figure(self.fig_graph[k].number)
             self.ax_graph[k].clear()
 
@@ -344,14 +329,14 @@ class bargain:
         plt.show(block=False)
 
     def _get_vertex_positions(self, data, prob_axis=2):
-        assert(prob_axis in [2, 3])
+        assert (prob_axis in [ 2, 3 ])
         assert (np.shape(data)[prob_axis] == 3)
         # data of the form [T, N, 3]
         # (JL + JM + JH)
         den = np.sum(data, axis=prob_axis)
 
         # Vertices JL, JM, JH
-        if prob_axis==2:
+        if prob_axis == 2:
 
             # (JL + JM/2)/(JL+JM+JH)
             data_x = (data[:, :, 0] + data[:, :, 1] / 2.0) / den
@@ -359,7 +344,7 @@ class bargain:
             # \sqrt(3) * JM/2 /(JL+JM+JH)
             data_y = np.sqrt(3) * data[:, :, 1] / 2.0 / den
 
-        elif prob_axis==3:
+        elif prob_axis == 3:
             data_x = (data[:, :, :, 0] + data[:, :, :, 1] / 2.0) / den
             data_y = np.sqrt(3) * data[:, :, :, 1] / 2.0 / den
 
@@ -430,7 +415,6 @@ class bargain:
             plt.pause(0.005)
             plt.show(block=False)
 
-
             # ------------------------------------
             # Plot the simplex in J (final state)
             # ------------------------------------
@@ -448,8 +432,8 @@ class bargain:
                 p_x_tag = p_x[:, l]
                 p_y_tag = p_y[:, l]
                 self.ax_simplex[k].plot(
-                    p_x_tag+0.01*np.random.randn(*np.shape(p_x_tag)),
-                    p_y_tag+0.01*np.random.randn(*np.shape(p_y_tag)),
+                    p_x_tag + 0.01 * np.random.randn(*np.shape(p_x_tag)),
+                    p_y_tag + 0.01 * np.random.randn(*np.shape(p_y_tag)),
                     markersize=8,
                     linewidth=0,
                     marker=self.node_shapes[l],
@@ -460,15 +444,13 @@ class bargain:
             plt.pause(0.005)
             plt.show(block=False)
 
-
-
         # Only plotting the inter-type equity (between Tags)
         # when there are more than 1 tag.
         # Function for N_tags > 2 not implemented.
         if self.N_tags == 2:
 
             # ------------------------------------------------
-            # Plot the simplex in J 
+            # Plot the simplex in J
             # Plotting the intra-type equity (Tag versus own tag)
             # ------------------------------------------------
             k = 0
@@ -486,13 +468,13 @@ class bargain:
                 p_x_tag = p_x[idx_tag, tag_oponent]
                 p_y_tag = p_y[idx_tag, tag_oponent]
                 self.ax_simplex[k].plot(
-                        p_x_tag+0.01*np.random.randn(*np.shape(p_x_tag)),
-                        p_y_tag+0.01*np.random.randn(*np.shape(p_y_tag)),
-                        markersize=8,
-                        linewidth=0,
-                        marker=self.node_shapes[l],
-                        label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
-                        )
+                    p_x_tag + 0.01 * np.random.randn(*np.shape(p_x_tag)),
+                    p_y_tag + 0.01 * np.random.randn(*np.shape(p_y_tag)),
+                    markersize=8,
+                    linewidth=0,
+                    marker=self.node_shapes[l],
+                    label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
+                )
 
             self.ax_simplex[k].legend()
             fig_path = self.results_folder + '/simplex_J_intra_within'
@@ -500,10 +482,8 @@ class bargain:
             plt.pause(0.005)
             plt.show(block=False)
 
-
-
             # ------------------------------------------------
-            # Plot the simplex in J 
+            # Plot the simplex in J
             # Plotting the inter-type equity (between Tags)
             # ------------------------------------------------
             k = 1
@@ -518,19 +498,19 @@ class bargain:
                 tag_own = l
                 tag_oponents = set(range(self.N_tags))
                 tag_oponents = tag_oponents.difference(set([l]))
-                assert(len(tag_oponents)==1)
+                assert (len(tag_oponents) == 1)
                 for tag_oponent in tag_oponents:
                     idx_tag = np.where(self.tags == tag_own)[0]
                     p_x_tag = p_x[idx_tag, tag_oponent]
                     p_y_tag = p_y[idx_tag, tag_oponent]
                     self.ax_simplex[k].plot(
-                            p_x_tag+0.01*np.random.randn(*np.shape(p_x_tag)),
-                            p_y_tag+0.01*np.random.randn(*np.shape(p_y_tag)),
-                            markersize=6,
-                            linewidth=0,
-                            marker=self.node_shapes[l],
-                            label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
-                            )
+                        p_x_tag + 0.01 * np.random.randn(*np.shape(p_x_tag)),
+                        p_y_tag + 0.01 * np.random.randn(*np.shape(p_y_tag)),
+                        markersize=6,
+                        linewidth=0,
+                        marker=self.node_shapes[l],
+                        label="Tag {:} against tag {:}".format(tag_own, tag_oponent),
+                    )
             self.ax_simplex[k].legend()
             fig_path = self.results_folder + '/simplex_J_inter_between'
             plt.savefig(fig_path)
