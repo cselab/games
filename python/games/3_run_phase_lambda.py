@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+'''
+Reproduces the bifurcation diagram for the lambda parameter in "Lattice Dynamics of Inequity"
+'''
 from games import bargain
 import graphs as gr
 import matplotlib.pyplot as plt

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+'''
+Plot the utility function from the paper "Bargaining problem", J. Nash.
+'''
 import matplotlib.pyplot as plt
 import numpy as np
 

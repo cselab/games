@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+'''
+Implements graphs ready to run a game on.
+'''
 import networkx as nx
 
 

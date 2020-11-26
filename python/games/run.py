@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+'''
+Run a bargain game on a graph.
+'''
 from games import bargain
 import graphs as gr
 import matplotlib.pyplot as plt
@@ -19,7 +21,7 @@ G = gr.lattice_von_neumann(n)
 
 game = bargain(G, beta=2, J0=[ 6, 4, 3 ], N_tags=2)
 
-# game.plot_graph(node_size=node_size)
+game.plot_graph(node_size=node_size)
 
 for k in range(10):
     game.play(N_epochs=10, N_per_epoch=10000)

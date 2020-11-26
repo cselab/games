@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+'''
+Try to find formation of classes.
+'''
 from games import bargain
 import graphs as gr
 import matplotlib.pyplot as plt
@@ -17,17 +19,6 @@ num_runs = 1
 lattice = "off_lattice"
 node_size = 1000
 seed = 50
-
-# n           = 36
-# beta        = 1.0
-# gamma       = 0.1
-# N_tags      = 2
-# J0          = [ 4, 1, 4 ]
-# N_epochs    = 500
-# num_runs    = 4
-# lattice     = "off_lattice"
-# node_size   = 1000
-# seed        = 1
 
 if lattice == "off_lattice":
     G = gr.off_lattice(n * n)

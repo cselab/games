@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+'''
+Reproduces figure 3 from "Lattice Dynamics of Inequity"
+'''
 from games import bargain
 import graphs as gr
 import matplotlib.pyplot as plt

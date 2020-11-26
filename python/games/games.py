@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-
+'''
+Implementation of bargain games on a graph. Uses jit (just in time) for better
+performance.
+'''
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -143,7 +146,7 @@ class bargain:
                 or 'has data' not in self.G.graph.keys()):
             for node in self.G:
                 node_data = self.G.nodes[node]
-                if self.random_init==True:
+                if self.random_init == True:
                     node_data['J'] = np.random.uniform(low=0, high=self.J0, size=(self.N_tags, 3)).astype('float64')
                 else:
                     node_data['J'] = self.J0

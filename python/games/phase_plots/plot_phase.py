@@ -6,9 +6,10 @@ ms = 7
 alpha = 0.4
 plt.rcParams.update({ 'font.size': 20 })
 
-fname = 'phase_beta_well_mixed_9-0-3'
-fname = 'phase_beta_well_mixed_1-10-1'
-fname = 'phase_beta_neumann_4-4-4'
+# fname = 'phase_beta_well_mixed_9-0-3'
+# fname = 'phase_beta_well_mixed_1-10-1'
+fname = 'phase_beta_well_mixed_2-1-0'
+# fname = 'phase_beta_neumann_4-4-4'
 
 x = np.loadtxt(fname + '.txt')
 
